@@ -7,6 +7,57 @@
 将来: Python（PyWebView / Tkinter + CEF 等）でデスクトップアプリ化予定。  
 使用ツール詳細 → [tool.md](tool.md)
 
+### C. PDF 束ねる（PDFMerge）
+
+ブラウザでは複数PDFバイナリを結合するAPIがないため不可。
+
+**Python 実装方針：**
+```python
+from pypdf import PdfWriter
+
+writer = PdfWriter()
+for pdf_path in pdf_paths:
+    writer.append(pdf_path)
+with open("merged.pdf", "wb") as f:
+    writer.write(f)
+```
+
+### D. PDF ばらす（PDFSplit）
+
+**Python 実装方針：**
+```python
+from pypdf import PdfReader, PdfWriter
+
+reader = PdfReader("input.pdf")
+for i, page in enumerate(reader.pages):
+    writer = PdfWriter()
+    writer.add_page(page)
+    with open(f"page_{i+1}.pdf", "wb") as f:
+        writer.write(f)
+```
+
+### E. 実ファイルの名前変更・削除・移動
+
+ブラウザの File System Access API は読み取り専用のため不可（`readwrite` モードでも rename/delete は未対応）。
+
+**Python 実装方針：**
+```python
+import os, shutil
+os.rename(src, dst)       # 名前変更・移動
+os.remove(path)           # 削除
+shutil.copy2(src, dst)    # 複製
+```
+
+### F. プリンタ詳細設定ダイアログ
+
+**Python 実装方針：**
+```python
+import win32print, win32ui, win32con
+hprinter = win32print.OpenPrinter(printer_name)
+devmode = win32print.GetPrinter(hprinter, 8)['pDevMode']
+win32ui.CreatePrintDialog().DoModal()  # OS標準ダイアログ
+```
+
 ---
 
 ## UI レイアウト
@@ -57,7 +108,9 @@
 | PDF 個別追加 | `<input type="file">` で複数ファイルを仮想ツリーに追加 | — |
 | ドラッグ＆ドロップ追加 | PDF をウィンドウにドロップしてツリーに追加 | — |
 | ファイル件数表示 | サイドバーヘッダーに PDF 合計件数表示 | `countFiles` |
-| ファイルソート | フォルダ優先、次いで日本語ロケール順 | `scanDir` 内 sort |
+| ファイルソート | 名前順 (A→Z/Z→A)・更新日時順・ファイルサイズ順 | `sortTreeChildren` |
+| ファイル種別アイコン | 拡張子に応じた絵文字アイコン表示（PDF/Excel/Word/画像/動画 など） | `getFileIcon` |
+| ファイルプロパティ | 右クリック → 名前・種類・サイズ・更新日時・ページ数を表示 | `showFileProperties` |
 
 ### 3. 左サイドバー（ファイルツリー）
 
@@ -69,6 +122,9 @@
 | アクティブ強調 | 選択中ファイルを青背景でハイライト | — |
 | ページ数表示 | 読み込み完了後にファイル名横にページ数表示 | — |
 | サイドバーリサイズ | 左右ドラッグで幅変更（最小 140px、最大 400px） | resize event handlers |
+| フォルダカラー | 右クリック → 23色からフォルダ色を選択・localStorage永続化 | `showFolderColorPicker`, `folderColorStore` |
+| フォルダタグ | 右クリック → タグを追加・削除、タグバーでフィルタリング（同一階層のみ）・localStorage永続化 | `addFolderTag`, `updateTagFilterBar` |
+| インラインリネーム | ファイル名をダブルクリックで直接編集 | tree label dblclick handler |
 
 ### 4. サムネイルグリッド — フォルダ結合ビュー（右コンテンツ）
 
@@ -100,11 +156,14 @@
 
 | 機能 | 詳細 | 主な関数 |
 |------|------|---------|
-| ハイライト描画 | ドラッグで矩形ハイライト（黄/緑/青/ピンク/オレンジの 5 色） | anno canvas mousedown/move/up |
-| カラー選択 | カラースウォッチをクリックして描画色を切替（自動でハイライトモードに移行） | — |
-| コメントピン | クリック位置にピンを配置してテキスト入力・保存 | `showCommentPopup`, `updateCommentPins` |
-| コメント表示 | ピンにホバーするとコメントをツールチップ表示 | `updateCommentPins` |
-| 消しゴム | ハイライト矩形内または Comment ピン近傍をクリックで個別削除 | `eraseAt` |
+| ハイライト描画 | ドラッグで矩形ハイライト（黄/緑/青/ピンク/赤の 5 色・Edge準拠カラー） | anno canvas mousedown/move/up |
+| ハイライト色選択 | カラースウォッチをクリックして描画色を切替（自動でハイライトモードに移行） | — |
+| コメントピン | クリック位置に色付き丸アイコンを配置してテキスト入力・保存 | `showCommentPopup`, `updateCommentPins` |
+| コメント色選択 | コメント用カラースウォッチ（オレンジ/緑/青/赤）で色を選択 | — |
+| コメント表示 | ピンをクリックするとコメントテキストをポップアップ表示、再クリックまたは外側クリックで閉じる | `updateCommentPins`, `closeCommentViewPopup` |
+| 付箋（スティッキーノート） | クリック位置にドラッグ移動・リサイズ可能な付箋を配置、テキスト入力可能 | `placeStickyNote`, `renderStickyNotes`, `createStickyNoteEl` |
+| 付箋色選択 | 付箋用カラースウォッチ（黄/緑/ピンク/青）で色を選択 | — |
+| 消しゴム | ハイライト矩形内・コメントピン近傍・付箋領域内をクリックで個別削除 | `eraseAt` |
 | ページ消去 | 「このページを消去」で当該ページの全注釈を一括削除 | — |
 | 選択モード | 注釈を操作しない通常閲覧モード | `setAnnoTool` |
 | 注釈の永続化 | localStorage に JSON 形式で保存 | `saveAnnoStore`, `loadAnnoStore` |
@@ -123,6 +182,7 @@
 | c | コメントツール |
 | e | 消しゴムツール |
 | s | 選択モード |
+| n | 付箋ツール |
 
 ---
 
@@ -140,9 +200,88 @@
 {
   "filename.pdf": {
     "1": [
-      { "type": "highlight", "x": 0.1, "y": 0.2, "w": 0.3, "h": 0.05, "color": "#faee50" },
-      { "type": "comment",   "x": 0.5, "y": 0.4, "text": "メモ", "color": "#ff9900" }
+      { "type": "highlight", "x": 0.1, "y": 0.2, "w": 0.3, "h": 0.05, "color": "#fef08a" },
+      { "type": "comment",   "x": 0.5, "y": 0.4, "text": "メモ", "color": "#f59e0b" },
+      { "type": "sticky",    "x": 0.6, "y": 0.1, "w": 0.22, "h": 0.15, "color": "#fef08a", "text": "付箋メモ" }
     ]
+  }
+}
+```
+
+---
+
+## メニューバー機能（v1.1 追加）
+
+### ファイルメニュー
+
+| メニュー項目 | 実装状況 | 動作 |
+|------------|---------|------|
+| 新規作成 | ✅ HTML | 現在のビューをクリアして初期状態に戻す |
+| ファイルの取り込み | ✅ HTML | ファイル選択ダイアログを開く |
+| フォルダの取り込み | ✅ HTML | フォルダ選択ダイアログを開く（ワークスペースに登録） |
+| 名前を付けて保存 | ✅ HTML | `showSaveFilePicker` / `<a download>` でPDFをダウンロード保存 |
+| 名前の変更 | ✅ HTML | ツリー内の表示名を変更（実ファイルは変更不可） |
+| プロパティ | ✅ HTML | ファイル情報ダイアログを表示 |
+| スキャナの選択 | ❌ アプリ版 | ブラウザにTWAIN APIなし |
+| スキャン開始 | ❌ アプリ版 | ブラウザにTWAIN APIなし |
+| プリンタの設定 | ⚠️ 部分対応 | `window.print()` のみ。詳細設定はアプリ版 |
+| 印刷 | ✅ HTML | 全画面モーダル経由で印刷ダイアログを開く |
+
+### 編集メニュー
+
+| メニュー項目 | 実装状況 | 動作 |
+|------------|---------|------|
+| 元に戻す / やり直し | ✅ HTML | 注釈操作のundo/redo（スタック30件） |
+| 切り取り / コピー | ⚠️ 部分対応 | アプリ内クリップボードに記録（実ファイル操作は不可） |
+| 貼り付け | ⚠️ 部分対応 | クリップボード確認のみ。実際のページ合体はアプリ版 |
+| 削除 | ✅ HTML | ツリーから除去（実ファイルは削除不可） |
+| 複製 | ✅ HTML | ツリー内に同名＋コピーとして追加 |
+| 回転 | ✅ HTML | PDF.jsの`rotation`パラメータで90°/180°/270°回転。`localStorage`に永続化 |
+| 束ねる | ❌ アプリ版 | PDF結合はブラウザAPIなし |
+| ばらす | ❌ アプリ版 | PDF分割はブラウザAPIなし |
+| すべてを選択 | ✅ HTML | サムネイルカードを全選択（視覚ハイライト） |
+| 検索 | ✅ HTML | ツリー内のファイル名で絞り込み検索 |
+
+### 表示メニュー
+
+| メニュー項目 | 実装状況 | 動作 |
+|------------|---------|------|
+| サムネールで表示 | ✅ HTML | デフォルト表示モード |
+| サムネールサイズ | ✅ HTML | 小(80) / 中(120) / 大(160) / 特大(200)px |
+| 整列 | ✅ HTML | 名前昇順・降順でツリーをソート |
+| 最新の情報に更新 | ✅ HTML | フォルダを再スキャン（F5） |
+
+### ヘルプメニュー
+
+| メニュー項目 | 実装状況 | 動作 |
+|------------|---------|------|
+| 操作マニュアル | ✅ HTML | `./manual.html` へリンク＋インライン簡易ガイド |
+| GitHub: YueNull | ✅ HTML | `https://github.com/YueNull` を新タブで開く |
+| バージョン情報 | ✅ HTML | バージョン・開発者・ライセンス情報ダイアログ |
+
+### キーボードショートカット（グローバル）
+
+| キー | 動作 |
+|------|------|
+| F2 | 名前の変更 |
+| F3 | 検索を開く |
+| F5 | 最新の情報に更新 |
+| Ctrl+I | プロパティ |
+| Ctrl+D | 複製 |
+| Ctrl+Z | 元に戻す |
+| Ctrl+Y | やり直し |
+| Ctrl+P | 印刷 |
+| Delete | 選択ファイルを削除 |
+
+### 回転の永続化
+
+```json
+// localStorage key: "pdf_rotation"
+// 構造: { [filename]: { [pageNum]: 0|90|180|270 } }
+{
+  "1法人税.pdf": {
+    "1": 90,
+    "3": 180
   }
 }
 ```
@@ -179,3 +318,35 @@ ss.RequestAcquire(0, 0)
 rv = ss.XferImageNatively()
 ```
 詳細 → [tool.md](tool.md)
+
+### G. PDF間ページドラッグ移動・結合・保存
+
+ブラウザの File System Access API は PDF バイナリの書き換えをサポートしないため HTML では不可。
+
+**要件：**
+- 異なる PDF ファイル間でページを Drag & Drop して順序を変更
+- 複数 PDF をページ単位で組み合わせて新しい PDF として保存
+- 元の PDF ファイルへの上書き保存
+
+**Python 実装方針：**
+```python
+from pypdf import PdfReader, PdfWriter
+
+def merge_pages(page_list, output_path):
+    """
+    page_list: [(pdf_path, page_index), ...] の順序でページを結合
+    """
+    readers = {}
+    writer = PdfWriter()
+    for pdf_path, page_idx in page_list:
+        if pdf_path not in readers:
+            readers[pdf_path] = PdfReader(pdf_path)
+        writer.add_page(readers[pdf_path].pages[page_idx])
+    with open(output_path, 'wb') as f:
+        writer.write(f)
+```
+
+**UI 方針（App化時）：**
+- サムネイルカードを他 PDF のサムネイルグリッドへドラッグ
+- ドロップ位置にページを挿入（プレビューラインで位置を示す）
+- 「保存」ボタンで新規 PDF として書き出し or 元ファイルに上書き

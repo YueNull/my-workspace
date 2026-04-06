@@ -25,12 +25,151 @@
       align-items: center;
       background: #e8d8c0;
       border-bottom: 1px solid #a09070;
-      padding: 0 8px;
+      padding: 0 4px;
       height: 28px;
       flex-shrink: 0;
+      position: relative;
+      z-index: 200;
     }
-    .menubar-item { padding: 4px 10px; font-size: 12px; cursor: pointer; border-radius: 3px; }
-    .menubar-item:hover { background: #d0c0a8; }
+    .menu-item {
+      position: relative;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      user-select: none;
+      height: 100%;
+      display: flex;
+      align-items: center;
+    }
+    .menu-item:hover { background: #d0c0a8; }
+    .menu-item.open { background: #4a7cb8; color: #fff; border-radius: 3px 3px 0 0; }
+
+    /* ドロップダウン共通 */
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #f5ede0;
+      border: 1px solid #a09070;
+      box-shadow: 3px 4px 12px rgba(0,0,0,0.28);
+      min-width: 220px;
+      z-index: 300;
+      border-radius: 0 3px 3px 3px;
+      padding: 3px 0;
+    }
+    .menu-item.open > .dropdown { display: block; }
+    .drop-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 14px 4px 20px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      color: #2a2a2a;
+      gap: 16px;
+      position: relative;
+    }
+    .drop-item:hover { background: #4a7cb8; color: #fff; }
+    .drop-item.disabled { color: #b0a080; cursor: not-allowed; pointer-events: none; font-style: italic; }
+    .drop-item .shortcut { font-size: 10px; opacity: 0.6; flex-shrink: 0; }
+    .drop-item:hover .shortcut { opacity: 0.85; }
+    .drop-sep { height: 1px; background: #c8b890; margin: 3px 6px; }
+
+    /* チェックマーク付き */
+    .drop-item.checked::before { content: '✓'; position: absolute; left: 6px; font-size: 10px; }
+
+    /* サブメニュー */
+    .drop-item.has-sub::after { content: '▶'; font-size: 9px; margin-left: auto; padding-left: 8px; }
+    .sub-menu {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: -4px;
+      background: #f5ede0;
+      border: 1px solid #a09070;
+      box-shadow: 3px 4px 12px rgba(0,0,0,0.25);
+      min-width: 180px;
+      padding: 3px 0;
+      border-radius: 3px;
+      z-index: 400;
+    }
+    .drop-item.has-sub:hover > .sub-menu { display: block; }
+
+    /* ── 汎用モーダルダイアログ ── */
+    .app-dialog-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .app-dialog-overlay.hidden { display: none; }
+    .app-dialog {
+      background: #f0e8d8;
+      border: 1px solid #a09070;
+      border-radius: 6px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      min-width: 340px;
+      max-width: 480px;
+      padding: 0;
+      overflow: hidden;
+    }
+    .app-dialog-title {
+      background: #4a7cb8;
+      color: #fff;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .app-dialog-body { padding: 16px 18px; font-size: 12px; line-height: 1.7; color: #2a2a2a; }
+    .app-dialog-body table { width: 100%; border-collapse: collapse; }
+    .app-dialog-body td { padding: 3px 6px; vertical-align: top; }
+    .app-dialog-body td:first-child { color: #6a5a40; white-space: nowrap; width: 100px; }
+    .app-dialog-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 18px; border-top: 1px solid #c8b890; }
+    .app-dialog-btn {
+      padding: 4px 16px;
+      background: #e0d0b8;
+      border: 1px solid #a09070;
+      border-radius: 3px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .app-dialog-btn:hover { background: #d0c0a8; }
+    .app-dialog-btn.primary { background: #4a7cb8; color: #fff; border-color: #3a6ca8; }
+    .app-dialog-btn.primary:hover { background: #5a8cc8; }
+    .app-dialog-close { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; line-height: 1; padding: 0; }
+
+    /* 検索バー */
+    .search-input {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #a09070;
+      border-radius: 3px;
+      background: #fff;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    .search-input:focus { outline: none; border-color: #4a7cb8; }
+    .search-results { max-height: 240px; overflow-y: auto; }
+    .search-result-item {
+      padding: 5px 8px;
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-result-item:hover { background: #4a7cb8; color: #fff; }
+    .search-no-result { color: #888; font-size: 11px; text-align: center; padding: 16px; }
 
     /* ── ツールバー ── */
     .toolbar {
@@ -165,6 +304,154 @@
     .tree-pages { font-size: 9px; opacity: 0.55; margin-left: 4px; flex-shrink: 0; }
     .tree-node.active-file .tree-pages { opacity: 0.75; }
     .sidebar-empty { padding: 20px 10px; text-align: center; font-size: 11px; color: #8a7a60; line-height: 1.7; }
+    /* フォルダカラー */
+    .tree-node.has-folder-color { border-left-width: 3px; }
+    /* フォルダカラーピッカーポップアップ */
+    .folder-color-popup {
+      position: fixed;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+      z-index: 9999;
+      display: none;
+    }
+    .folder-color-popup.visible { display: block; }
+    .fcp-title { font-size: 10px; color: #888; margin-bottom: 6px; }
+    .fcp-grid { display: grid; grid-template-columns: repeat(6, 18px); gap: 3px; }
+    .fcp-swatch {
+      width: 18px; height: 18px;
+      border-radius: 3px;
+      border: 1px solid rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .fcp-swatch:hover { transform: scale(1.25); border-color: #333; }
+    .fcp-swatch.fcp-none { background: #fff; border: 1.5px dashed #bbb; }
+
+    /* フォルダタグ */
+    .folder-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      background: #4a7cb8;
+      color: #fff;
+      cursor: default;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .folder-tag-del { cursor: pointer; opacity: 0.7; margin-left: 2px; }
+    .folder-tag-del:hover { opacity: 1; }
+    /* タグ入力エリア（カラーピッカーの下） */
+    .fcp-tag-section { margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
+    .fcp-tag-section label { font-size: 10px; color: #888; display: block; margin-bottom: 4px; }
+    .fcp-tag-row { display: flex; gap: 4px; }
+    .fcp-tag-input { flex: 1; font-size: 11px; border: 1px solid #ccc; border-radius: 4px; padding: 2px 6px; }
+    .fcp-tag-add { font-size: 11px; padding: 2px 8px; border: 1px solid #4a7cb8; background: #4a7cb8; color: #fff; border-radius: 4px; cursor: pointer; }
+    .fcp-tag-add:hover { background: #5a8cc8; }
+    .fcp-current-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    /* タグフィルタバー */
+    .tag-filter-bar {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: #d8c8a8;
+      border-bottom: 1px solid #a09070;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: #5a4a30;
+    }
+    .tag-filter-bar.visible { display: flex; }
+    .tag-filter-chip {
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1.5px solid #4a7cb8;
+      color: #4a7cb8;
+      background: #fff;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .tag-filter-chip.active { background: #4a7cb8; color: #fff; }
+    .tag-filter-clear { font-size: 10px; color: #888; cursor: pointer; margin-left: 4px; }
+    .tag-filter-clear:hover { color: #c03030; }
+
+    /* ── ワークスペースパネル ── */
+    .workspace-panel {
+      flex-shrink: 0;
+      border-bottom: 2px solid #a09070;
+      background: #d8c8a8;
+      display: flex;
+      flex-direction: column;
+      max-height: 180px;
+    }
+    .workspace-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 10px;
+      background: #cfc0a0;
+      border-bottom: 1px solid #b0a080;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4a3a20;
+      flex-shrink: 0;
+    }
+    .workspace-add-btn {
+      background: #4a7cb8;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .workspace-add-btn:hover { background: #5a8cc8; }
+    .workspace-list { overflow-y: auto; flex: 1; }
+    .workspace-list::-webkit-scrollbar { width: 4px; }
+    .workspace-list::-webkit-scrollbar-thumb { background: #a09070; border-radius: 2px; }
+    .workspace-item {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 11px;
+      color: #3a2a10;
+      gap: 5px;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+      min-height: 26px;
+      transition: background 0.1s;
+    }
+    .workspace-item:hover { background: rgba(0,0,0,0.09); }
+    .workspace-item.active { background: #4a7cb8; color: #fff; }
+    .workspace-item-icon { font-size: 13px; flex-shrink: 0; }
+    .workspace-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .workspace-del-btn {
+      background: none;
+      border: none;
+      color: #a09070;
+      cursor: pointer;
+      font-size: 11px;
+      padding: 0 2px;
+      flex-shrink: 0;
+      line-height: 1;
+      opacity: 0.6;
+    }
+    .workspace-del-btn:hover { color: #c03030; opacity: 1; }
+    .workspace-item.active .workspace-del-btn { color: #cce; }
+    .workspace-item.active .workspace-del-btn:hover { color: #fcc; }
+    .workspace-empty { padding: 10px; font-size: 10px; color: #8a7a60; text-align: center; line-height: 1.6; }
 
     /* ── 右コンテンツ ── */
     .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #c8b89a; }
@@ -195,6 +482,7 @@
     .thumb-grid::-webkit-scrollbar-thumb { background: #8a7a60; border-radius: 4px; }
     .thumb-card { display: flex; flex-direction: column; align-items: center; cursor: pointer; gap: 4px; }
     .thumb-card:hover .thumb-frame { border-color: #4a7cb8; box-shadow: 0 2px 12px rgba(74,124,184,0.4); }
+    .thumb-card.selected .thumb-frame { border-color: #4a7cb8; box-shadow: 0 0 0 2px #4a7cb8; }
     .thumb-frame {
       background: #fff;
       border: 2px solid #9a8a70;
@@ -244,7 +532,7 @@
     /* ════════════════════════════════════════════
        全画面モーダル
     ════════════════════════════════════════════ */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 100; display: flex; flex-direction: column; align-items: center; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 300; display: flex; flex-direction: column; align-items: center; }
     .modal-overlay.hidden { display: none; }
 
     .modal-bar {
@@ -283,6 +571,9 @@
     }
     .anno-toolbar-label { font-size: 11px; color: #888; white-space: nowrap; }
     .anno-sep { width: 1px; height: 20px; background: #3a3a50; margin: 0 2px; }
+    /* ツール別カラーグループ：アクティブ時のみ表示 */
+    .anno-color-group { display: none; align-items: center; gap: 4px; }
+    .anno-color-group.visible { display: flex; }
     .anno-tool-btn {
       display: flex;
       align-items: center;
@@ -371,50 +662,160 @@
     .comment-popup-btns button { padding: 3px 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 11px; cursor: pointer; }
     .comment-ok { background: #4a7cb8; color: #fff; border-color: #3a6ca8 !important; }
 
-    /* コメントピン（注釈アイコン） */
+    /* コメントピン（スピーチバブル風） */
     .comment-pin {
       position: absolute;
-      width: 24px;
-      height: 24px;
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-      transition: transform 0.1s;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+      transition: transform 0.12s, box-shadow 0.12s;
+      z-index: 15;
+      font-size: 13px;
+      line-height: 1;
+      user-select: none;
     }
-    .comment-pin:hover { transform: rotate(-45deg) scale(1.2); }
-    .comment-pin-label {
+    .comment-pin:hover { transform: scale(1.2); box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
+    .comment-pin-popup {
       position: absolute;
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      white-space: pre-wrap;
-      max-width: 200px;
-      pointer-events: none;
-      z-index: 10;
+      background: #fff;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-width: 140px;
+      max-width: 220px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      font-size: 12px;
+      line-height: 1.55;
+      z-index: 50;
       display: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+      pointer-events: none;
     }
-    .comment-pin:hover + .comment-pin-label,
-    .comment-pin:focus + .comment-pin-label { display: block; }
+    .comment-pin-popup.visible { display: block; }
+
+    /* 付箋 */
+    .sticky-note {
+      position: absolute;
+      width: 180px;
+      min-height: 110px;
+      border-radius: 2px;
+      box-shadow: 3px 4px 12px rgba(0,0,0,0.22), 0 1px 2px rgba(0,0,0,0.12);
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+      overflow: hidden;
+    }
+    .sticky-note-header {
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 5px;
+      cursor: move;
+      flex-shrink: 0;
+      filter: brightness(0.82);
+    }
+    .sticky-note-close {
+      background: none;
+      border: none;
+      color: rgba(0,0,0,0.55);
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+    .sticky-note-close:hover { color: rgba(0,0,0,0.85); background: rgba(0,0,0,0.12); }
+    .sticky-note-body {
+      flex: 1;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-family: inherit;
+      border: none;
+      background: transparent;
+      resize: none;
+      outline: none;
+      color: #333;
+      line-height: 1.55;
+      min-height: 80px;
+    }
+    .sticky-note-resize {
+      position: absolute;
+      bottom: 2px;
+      right: 3px;
+      font-size: 10px;
+      color: rgba(0,0,0,0.3);
+      cursor: se-resize;
+      user-select: none;
+      line-height: 1;
+    }
+
+    /* 付箋・コメント カラースウォッチ（小） */
+    .anno-color-swatch-sm {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.13s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .anno-color-swatch-sm:hover { transform: scale(1.15); }
+    .anno-color-swatch-sm.active { border-color: #fff; box-shadow: 0 0 0 2px #4a7cb8; }
 
     /* モーダル内ズームラベル */
     .modal-zoom-label-span { font-size: 12px; min-width: 36px; text-align: center; }
 
     /* 印刷ダイアログ */
     .print-dialog {
-      position: absolute;
-      top: 56px; right: 120px;
+      position: fixed;
+      top: 56px; right: 20px;
       background: #2a2a3a;
       border: 1px solid #555;
       border-radius: 8px;
       padding: 16px 20px;
       width: 360px;
-      z-index: 200;
+      z-index: 9000;
       box-shadow: 0 4px 24px rgba(0,0,0,0.6);
       color: #e0e0e0;
     }
+    .print-dialog.hidden { display: none; }
+
+    /* 右クリックコンテキストメニュー */
+    .ctx-menu {
+      position: fixed;
+      background: #fff;
+      border: 1px solid #c8c8c8;
+      border-radius: 4px;
+      box-shadow: 2px 4px 16px rgba(0,0,0,0.22);
+      z-index: 9999;
+      min-width: 180px;
+      padding: 3px 0;
+      font-size: 12px;
+      user-select: none;
+    }
+    .ctx-menu.hidden { display: none; }
+    .ctx-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 16px 6px 12px;
+      cursor: pointer;
+      color: #1a1a1a;
+      gap: 12px;
+      white-space: nowrap;
+    }
+    .ctx-item:hover { background: #0078d4; color: #fff; }
+    .ctx-item.disabled { color: #aaa; pointer-events: none; }
+    .ctx-shortcut { font-size: 10px; opacity: 0.6; }
+    .ctx-item:hover .ctx-shortcut { opacity: 0.85; }
+    .ctx-sep { height: 1px; background: #e0e0e0; margin: 3px 0; }
     .print-dialog-title { font-size: 14px; font-weight: bold; margin-bottom: 14px; color: #fff; }
     .print-dialog-row { margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; }
     .print-dialog-row > label { font-size: 12px; color: #aaa; }
@@ -449,10 +850,155 @@
 <body>
 
 <!-- メニューバー -->
-<div class="menubar">
-  <div class="menubar-item">ファイル(F)</div>
-  <div class="menubar-item">表示(V)</div>
-  <div class="menubar-item">ヘルプ(H)</div>
+<div class="menubar" id="menubar">
+
+  <!-- ファイル -->
+  <div class="menu-item" data-menu="file">ファイル(F)
+    <div class="dropdown">
+      <div class="drop-item" id="mi-new">📄 新規作成(N)</div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-import-file">📥 ファイルの取り込み(I)...</div>
+      <div class="drop-item" id="mi-import-folder">📁 フォルダの取り込み(B)...</div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-save-as">💾 名前を付けて保存(A)...</div>
+      <div class="drop-item" id="mi-rename">✏ 名前の変更(M) <span class="shortcut">F2</span></div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-prop">ℹ プロパティ(R) <span class="shortcut">Ctrl+I</span></div>
+      <div class="drop-sep"></div>
+      <div class="drop-item disabled" id="mi-scanner-sel" title="アプリ版で対応予定">🖨 スキャナの選択(S)...</div>
+      <div class="drop-item disabled" id="mi-scan-start" title="アプリ版で対応予定">▶ スキャン開始(C)</div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-print-setup">⚙ プリンタの設定(T)...</div>
+      <div class="drop-item" id="mi-print-menu">🖨 印刷(P)... <span class="shortcut">Ctrl+P</span></div>
+    </div>
+  </div>
+
+  <!-- 編集 -->
+  <div class="menu-item" data-menu="edit">編集(E)
+    <div class="dropdown">
+      <div class="drop-item" id="mi-undo">↩ 元に戻す(U) <span class="shortcut">Ctrl+Z</span></div>
+      <div class="drop-item" id="mi-redo">↪ やり直し(R) <span class="shortcut">Ctrl+Y</span></div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-cut">✂ 切り取り(T) <span class="shortcut">Ctrl+X</span></div>
+      <div class="drop-item" id="mi-copy">📋 コピー(C) <span class="shortcut">Ctrl+C</span></div>
+      <div class="drop-item" id="mi-paste">📋 貼り付け(P) <span class="shortcut">Ctrl+V</span></div>
+      <div class="drop-item" id="mi-delete">🗑 削除(D) <span class="shortcut">Del</span></div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-duplicate">📑 複製(J) <span class="shortcut">Ctrl+D</span></div>
+      <div class="drop-sep"></div>
+      <div class="drop-item has-sub" id="mi-rotate">🔄 回転(G)
+        <div class="sub-menu">
+          <div class="drop-item" id="mi-rotate-cw">↻ 右に90°回転(R)</div>
+          <div class="drop-item" id="mi-rotate-ccw">↺ 左に90°回転(L)</div>
+          <div class="drop-item" id="mi-rotate-180">🔃 180°回転(H)</div>
+        </div>
+      </div>
+      <div class="drop-sep"></div>
+      <div class="drop-item disabled" title="アプリ版で対応予定">📚 束ねる(M)</div>
+      <div class="drop-item disabled" title="アプリ版で対応予定">📄 ばらす(B)</div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-select-all">☑ すべてを選択(A) <span class="shortcut">Ctrl+A</span></div>
+      <div class="drop-item" id="mi-find">🔍 検索(S)... <span class="shortcut">F3</span></div>
+    </div>
+  </div>
+
+  <!-- 表示 -->
+  <div class="menu-item" data-menu="view">表示(V)
+    <div class="dropdown">
+      <div class="drop-item checked" id="mi-view-thumb">🖼 サムネールで表示(N)</div>
+      <div class="drop-sep"></div>
+      <div class="drop-item has-sub">📐 サムネールサイズ(Z)
+        <div class="sub-menu">
+          <div class="drop-item" id="mi-size-sm">小 (80px)</div>
+          <div class="drop-item checked" id="mi-size-md">中 (120px)</div>
+          <div class="drop-item" id="mi-size-lg">大 (160px)</div>
+          <div class="drop-item" id="mi-size-xl">特大 (200px)</div>
+        </div>
+      </div>
+      <div class="drop-sep"></div>
+      <div class="drop-item has-sub">🔤 整列(A)
+        <div class="sub-menu">
+          <div class="drop-item" id="mi-sort-name-asc">名前の順(A→Z)</div>
+          <div class="drop-item" id="mi-sort-name-desc">名前の逆順(Z→A)</div>
+          <div class="drop-sep"></div>
+          <div class="drop-item" id="mi-sort-date-new">更新日時 新しい順</div>
+          <div class="drop-item" id="mi-sort-date-old">更新日時 古い順</div>
+          <div class="drop-sep"></div>
+          <div class="drop-item" id="mi-sort-size-large">ファイルサイズ 大きい順</div>
+          <div class="drop-item" id="mi-sort-size-small">ファイルサイズ 小さい順</div>
+        </div>
+      </div>
+      <div class="drop-item" id="mi-refresh">🔄 最新の情報に更新(U) <span class="shortcut">F5</span></div>
+      <div class="drop-sep"></div>
+      <div class="drop-item checked" id="mi-pdf-only">📄 PDFのみ表示</div>
+      <div class="drop-item" id="mi-all-files">📁 すべてのファイルを表示</div>
+    </div>
+  </div>
+
+  <!-- ヘルプ -->
+  <div class="menu-item" data-menu="help">ヘルプ(H)
+    <div class="dropdown">
+      <div class="drop-item" id="mi-manual">📖 操作マニュアル(M)</div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-github">🐙 GitHub: YueNull</div>
+      <div class="drop-sep"></div>
+      <div class="drop-item" id="mi-version">ℹ バージョン情報(V)</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 汎用ダイアログ -->
+<div class="app-dialog-overlay hidden" id="app-dialog-overlay">
+  <div class="app-dialog" id="app-dialog">
+    <div class="app-dialog-title" id="app-dialog-title">
+      <span id="app-dialog-title-text"></span>
+      <button class="app-dialog-close" id="app-dialog-close">✕</button>
+    </div>
+    <div class="app-dialog-body" id="app-dialog-body"></div>
+    <div class="app-dialog-footer" id="app-dialog-footer">
+      <button class="app-dialog-btn" id="app-dialog-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- フォルダカラーピッカー -->
+<div class="folder-color-popup" id="folder-color-popup">
+  <div class="fcp-title">フォルダの色</div>
+  <div class="fcp-grid" id="fcp-grid">
+    <div class="fcp-swatch fcp-none" data-color="" title="なし"></div>
+    <div class="fcp-swatch" style="background:#ef9a9a" data-color="#ef9a9a" title="ピンク"></div>
+    <div class="fcp-swatch" style="background:#f48fb1" data-color="#f48fb1" title="ローズ"></div>
+    <div class="fcp-swatch" style="background:#ce93d8" data-color="#ce93d8" title="紫"></div>
+    <div class="fcp-swatch" style="background:#90caf9" data-color="#90caf9" title="青"></div>
+    <div class="fcp-swatch" style="background:#80deea" data-color="#80deea" title="シアン"></div>
+    <div class="fcp-swatch" style="background:#a5d6a7" data-color="#a5d6a7" title="緑"></div>
+    <div class="fcp-swatch" style="background:#e6ee9c" data-color="#e6ee9c" title="黄緑"></div>
+    <div class="fcp-swatch" style="background:#fff59d" data-color="#fff59d" title="黄色"></div>
+    <div class="fcp-swatch" style="background:#ffcc80" data-color="#ffcc80" title="オレンジ"></div>
+    <div class="fcp-swatch" style="background:#ffab91" data-color="#ffab91" title="サーモン"></div>
+    <div class="fcp-swatch" style="background:#bcaaa4" data-color="#bcaaa4" title="茶"></div>
+    <div class="fcp-swatch" style="background:#e53935" data-color="#e53935" title="赤"></div>
+    <div class="fcp-swatch" style="background:#d81b60" data-color="#d81b60" title="深ピンク"></div>
+    <div class="fcp-swatch" style="background:#8e24aa" data-color="#8e24aa" title="深紫"></div>
+    <div class="fcp-swatch" style="background:#1e88e5" data-color="#1e88e5" title="深青"></div>
+    <div class="fcp-swatch" style="background:#00acc1" data-color="#00acc1" title="ティール"></div>
+    <div class="fcp-swatch" style="background:#43a047" data-color="#43a047" title="深緑"></div>
+    <div class="fcp-swatch" style="background:#c0ca33" data-color="#c0ca33" title="ライム"></div>
+    <div class="fcp-swatch" style="background:#f9a825" data-color="#f9a825" title="アンバー"></div>
+    <div class="fcp-swatch" style="background:#fb8c00" data-color="#fb8c00" title="深オレンジ"></div>
+    <div class="fcp-swatch" style="background:#6d4c41" data-color="#6d4c41" title="深茶"></div>
+    <div class="fcp-swatch" style="background:#546e7a" data-color="#546e7a" title="グレー青"></div>
+  </div>
+  <!-- タグ入力セクション -->
+  <div class="fcp-tag-section">
+    <label>🏷 タグを追加</label>
+    <div class="fcp-tag-row">
+      <input class="fcp-tag-input" id="fcp-tag-input" placeholder="タグ名を入力" maxlength="20">
+      <button class="fcp-tag-add" id="fcp-tag-add">追加</button>
+    </div>
+    <div class="fcp-current-tags" id="fcp-current-tags"></div>
+  </div>
 </div>
 
 <!-- ツールバー -->
@@ -486,11 +1032,29 @@
 
   <!-- 左ツリー -->
   <div class="sidebar" id="sidebar">
+
+    <!-- ワークスペース (保存済みフォルダ一覧) -->
+    <div class="workspace-panel" id="workspace-panel">
+      <div class="workspace-header">
+        <span>📂 ワークスペース</span>
+        <button class="workspace-add-btn" id="workspace-add-btn" title="フォルダを追加">＋</button>
+      </div>
+      <div class="workspace-list" id="workspace-list">
+        <div class="workspace-empty">「＋」でフォルダを登録</div>
+      </div>
+    </div>
+
     <div class="sidebar-header">
-      <span>📂 ファイル一覧</span>
+      <span>📋 ファイル一覧</span>
       <span id="file-count" style="font-weight:normal;opacity:0.7;"></span>
     </div>
-    <div class="folder-path" id="folder-path">— フォルダ未選択 —</div>
+    <div class="folder-path" id="folder-path">— フォルダを選択 —</div>
+    <!-- タグフィルタバー -->
+    <div class="tag-filter-bar" id="tag-filter-bar">
+      <span>🏷 タグ絞込：</span>
+      <div id="tag-filter-chips" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+      <span class="tag-filter-clear" id="tag-filter-clear">✕ 解除</span>
+    </div>
     <div class="tree-list" id="tree-list">
       <div class="sidebar-empty">
         「フォルダを開く」をクリックして<br>PDFが含まれるフォルダを選択<br><br>
@@ -512,7 +1076,7 @@
         <input type="number" class="folder-page-input" id="folder-page-input" min="1" value="1">
         <span class="ct-info">/ <span id="folder-page-total">0</span></span>
       </div>
-      <span class="ct-info" id="ct-tip" style="font-size:10px;opacity:0.7;">サムネイルをクリックすると全画面表示</span>
+      <span class="ct-info" id="ct-tip" style="font-size:10px;opacity:0.7;">クリック: 選択　ダブルクリック: 全画面表示　Ctrl+クリック: 複数選択</span>
     </div>
     <div class="content-empty" id="content-empty">
       <div class="big">📄</div>
@@ -549,19 +1113,35 @@
 
   <!-- 注釈ツールバー -->
   <div class="anno-toolbar" id="anno-toolbar">
-    <span class="anno-toolbar-label">ツール：</span>
-    <button class="anno-tool-btn active" id="tool-select" data-tool="select">▶ 選択</button>
+    <button class="anno-tool-btn active" id="tool-select" data-tool="select" title="選択モード (S)">▶ 選択</button>
     <div class="anno-sep"></div>
-    <span class="anno-toolbar-label">ハイライト：</span>
-    <div class="anno-color-swatch active" data-color="#faee50" style="background:#faee50" title="黄色" id="swatch-0"></div>
-    <div class="anno-color-swatch" data-color="#90ee90" style="background:#90ee90" title="緑" id="swatch-1"></div>
-    <div class="anno-color-swatch" data-color="#87ceeb" style="background:#87ceeb" title="青" id="swatch-2"></div>
-    <div class="anno-color-swatch" data-color="#ffb6c1" style="background:#ffb6c1" title="ピンク" id="swatch-3"></div>
-    <div class="anno-color-swatch" data-color="#ffa07a" style="background:#ffa07a" title="オレンジ" id="swatch-4"></div>
+    <button class="anno-tool-btn" id="tool-hl-btn" data-tool="highlight" title="ハイライト (H)">🖍 ハイライト</button>
+    <div class="anno-color-group" id="hl-colors">
+      <div class="anno-color-swatch active" data-color="#fef08a" style="background:#fef08a" title="黄色" id="swatch-0"></div>
+      <div class="anno-color-swatch" data-color="#86efac" style="background:#86efac" title="緑" id="swatch-1"></div>
+      <div class="anno-color-swatch" data-color="#93c5fd" style="background:#93c5fd" title="青" id="swatch-2"></div>
+      <div class="anno-color-swatch" data-color="#f9a8d4" style="background:#f9a8d4" title="ピンク" id="swatch-3"></div>
+      <div class="anno-color-swatch" data-color="#fca5a5" style="background:#fca5a5" title="赤" id="swatch-4"></div>
+    </div>
     <div class="anno-sep"></div>
-    <button class="anno-tool-btn" id="tool-comment" data-tool="comment">💬 コメント</button>
-    <button class="anno-tool-btn" id="tool-eraser" data-tool="eraser">🧹 消しゴム</button>
-    <button class="anno-clear-btn" id="anno-clear-page">🗑 このページを消去</button>
+    <button class="anno-tool-btn" id="tool-comment" data-tool="comment" title="コメント (C)">💬 コメント</button>
+    <div class="anno-color-group" id="cm-colors">
+      <div class="anno-color-swatch-sm active" id="cswatch-0" data-ccolor="#f59e0b" style="background:#f59e0b" title="オレンジ"></div>
+      <div class="anno-color-swatch-sm" id="cswatch-1" data-ccolor="#10b981" style="background:#10b981" title="緑"></div>
+      <div class="anno-color-swatch-sm" id="cswatch-2" data-ccolor="#3b82f6" style="background:#3b82f6" title="青"></div>
+      <div class="anno-color-swatch-sm" id="cswatch-3" data-ccolor="#ef4444" style="background:#ef4444" title="赤"></div>
+    </div>
+    <div class="anno-sep"></div>
+    <button class="anno-tool-btn" id="tool-sticky" data-tool="sticky" title="付箋 (N)">📌 付箋</button>
+    <div class="anno-color-group" id="st-colors">
+      <div class="anno-color-swatch-sm active" id="sswatch-0" data-scolor="#fef08a" style="background:#fef08a" title="黄色"></div>
+      <div class="anno-color-swatch-sm" id="sswatch-1" data-scolor="#bbf7d0" style="background:#bbf7d0" title="緑"></div>
+      <div class="anno-color-swatch-sm" id="sswatch-2" data-scolor="#fbcfe8" style="background:#fbcfe8" title="ピンク"></div>
+      <div class="anno-color-swatch-sm" id="sswatch-3" data-scolor="#bae6fd" style="background:#bae6fd" title="青"></div>
+    </div>
+    <div class="anno-sep"></div>
+    <button class="anno-tool-btn" id="tool-eraser" data-tool="eraser" title="消しゴム (E)">🧹 消しゴム</button>
+    <button class="anno-clear-btn" id="anno-clear-page" title="このページの全注釈を削除">🗑 消去</button>
   </div>
 
   <!-- キャンバス -->
@@ -569,33 +1149,8 @@
     <div class="modal-canvas-wrap" id="modal-canvas-wrap">
       <canvas id="modal-canvas"></canvas>
       <canvas id="anno-canvas"></canvas>
-      <!-- コメントピンはJSで動的追加 -->
-    </div>
-  </div>
-
-  <!-- 印刷ダイアログ -->
-  <div class="print-dialog hidden" id="print-dialog">
-    <div class="print-dialog-title">🖨 印刷設定</div>
-    <div class="print-dialog-row">
-      <label>プリンター</label>
-      <div class="print-printer-row">
-        <select id="print-printer-select"></select>
-        <button class="print-detail-btn" id="print-detail-btn">詳細設定</button>
-      </div>
-    </div>
-    <div class="print-dialog-row">
-      <label>ページ範囲</label>
-      <div class="print-range-group">
-        <label><input type="radio" name="print-range" value="all" checked> すべて</label>
-        <label><input type="radio" name="print-range" value="current"> 現在のページ</label>
-        <label><input type="radio" name="print-range" value="custom"> 指定：
-          <input type="text" id="print-range-input" placeholder="例: 1-3, 5" disabled>
-        </label>
-      </div>
-    </div>
-    <div class="print-dialog-btns">
-      <button id="print-cancel-btn">キャンセル</button>
-      <button class="print-ok-btn" id="print-ok-btn">印刷</button>
+      <!-- コメントピン・付箋・コメント表示ポップアップはJSで動的追加 -->
+      <div class="comment-pin-popup" id="comment-view-popup"></div>
     </div>
   </div>
 
@@ -607,6 +1162,44 @@
       <button class="comment-ok" id="comment-ok">追加</button>
     </div>
   </div>
+
+</div>
+
+<!-- 印刷ダイアログ（モーダルの外に配置） -->
+<div class="print-dialog hidden" id="print-dialog">
+  <div class="print-dialog-title">🖨 印刷設定</div>
+  <div class="print-dialog-row">
+    <label>プリンター</label>
+    <div class="print-printer-row">
+      <select id="print-printer-select"></select>
+      <button class="print-detail-btn" id="print-detail-btn">詳細設定</button>
+    </div>
+  </div>
+  <div class="print-dialog-row">
+    <label>ページ範囲</label>
+    <div class="print-range-group">
+      <label><input type="radio" name="print-range" value="all" checked> すべて</label>
+      <label><input type="radio" name="print-range" value="selected"> 選択したページ</label>
+      <label><input type="radio" name="print-range" value="current"> 現在のページ</label>
+      <label><input type="radio" name="print-range" value="custom"> 指定：
+        <input type="text" id="print-range-input" placeholder="例: 1-3, 5" disabled>
+      </label>
+    </div>
+  </div>
+  <div class="print-dialog-btns">
+    <button id="print-cancel-btn">キャンセル</button>
+    <button class="print-ok-btn" id="print-ok-btn">印刷</button>
+  </div>
+</div>
+
+<!-- 右クリックコンテキストメニュー -->
+<div class="ctx-menu hidden" id="ctx-menu">
+  <div class="ctx-item" id="ctx-open">📂 開く</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-rename">✏️ 名前の変更 <span class="ctx-shortcut">F2</span></div>
+  <div class="ctx-item" id="ctx-remove">🗑 ツリーから除去 <span class="ctx-shortcut">Del</span></div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-props">📋 プロパティ <span class="ctx-shortcut">Ctrl+I</span></div>
 </div>
 
 <script>
@@ -616,30 +1209,46 @@
   /* ══════════════════════════════════════════════════
      IndexedDB：前回フォルダハンドルの保存・復元
   ══════════════════════════════════════════════════ */
-  const DB_NAME = 'pdf-viewer-db', DB_VER = 1, STORE = 'handles';
+  const DB_NAME = 'pdf-viewer-db', DB_VER = 2, STORE = 'handles';
   let db = null;
 
   function openDB() {
     return new Promise((resolve, reject) => {
       const req = indexedDB.open(DB_NAME, DB_VER);
-      req.onupgradeneeded = e => e.target.result.createObjectStore(STORE);
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE);
+        if (!d.objectStoreNames.contains('bookmarks')) d.createObjectStore('bookmarks');
+      };
       req.onsuccess = e => resolve(e.target.result);
       req.onerror   = e => reject(e.target.error);
     });
   }
-  async function saveLastHandle(handle) {
-    if (!db) return;
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put(handle, 'lastDir');
-  }
-  async function loadLastHandle() {
-    if (!db) return null;
-    return new Promise((resolve) => {
-      const tx = db.transaction(STORE, 'readonly');
-      const req = tx.objectStore(STORE).get('lastDir');
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror   = () => resolve(null);
+
+  /* ── ブックマーク（ワークスペース）DB ── */
+  async function loadAllBookmarks() {
+    if (!db) return [];
+    return new Promise(resolve => {
+      const tx = db.transaction('bookmarks', 'readonly');
+      const req = tx.objectStore('bookmarks').getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror   = () => resolve([]);
     });
+  }
+  async function addBookmarkHandle(handle) {
+    if (!db) return null;
+    return new Promise(resolve => {
+      const id = Date.now();
+      const tx = db.transaction('bookmarks', 'readwrite');
+      tx.objectStore('bookmarks').put({ id, name: handle.name, handle }, id);
+      tx.oncomplete = () => resolve(id);
+      tx.onerror    = () => resolve(null);
+    });
+  }
+  async function removeBookmarkById(id) {
+    if (!db) return;
+    const tx = db.transaction('bookmarks', 'readwrite');
+    tx.objectStore('bookmarks').delete(id);
   }
 
   /* ══════════════════════════════════════════════════
@@ -663,11 +1272,248 @@
     saveAnnoStore();
   }
 
+  /* ── 回転ストレージ（localStorage）── */
+  // 構造: { [filename]: { [page]: 0|90|180|270 } }
+  let rotStore = {};
+  function loadRotStore() {
+    try { rotStore = JSON.parse(localStorage.getItem('pdf_rotation') || '{}'); } catch { rotStore = {}; }
+  }
+  function saveRotStore() {
+    try { localStorage.setItem('pdf_rotation', JSON.stringify(rotStore)); } catch(e) { console.warn(e); }
+  }
+  function getRotation(filename, page) {
+    return ((rotStore[filename] || {})[page]) ?? 0;
+  }
+  function setRotation(filename, page, deg) {
+    if (!rotStore[filename]) rotStore[filename] = {};
+    rotStore[filename][page] = ((deg % 360) + 360) % 360;
+    saveRotStore();
+  }
+  function applyRotation(filename, page, delta) {
+    const cur = getRotation(filename, page);
+    setRotation(filename, page, cur + delta);
+  }
+
+  /* ── ノードパス取得（ツリーを走査して相対パスを構築）── */
+  function getNodePath(targetNode) {
+    const parts = [];
+    function walk(node) {
+      if (node === targetNode) { parts.push(node.name); return true; }
+      if (node.children) {
+        for (const child of node.children) {
+          if (walk(child)) { parts.unshift(node.name); return true; }
+        }
+      }
+      return false;
+    }
+    if (treeRoot) walk(treeRoot);
+    if (parts.length === 0 && targetNode) parts.push(targetNode.name);
+    return parts.join(' / ');
+  }
+
+  /* ── コンテキストメニュー制御 ── */
+  let ctxMenuNode = null;
+  const ctxMenu = document.getElementById('ctx-menu');
+
+  function showContextMenu(e, node) {
+    e.preventDefault();
+    ctxMenuNode = node;
+    const W = window.innerWidth, H = window.innerHeight;
+    const mw = 200, mh = 170;
+    ctxMenu.style.left = Math.min(e.clientX, W - mw) + 'px';
+    ctxMenu.style.top  = Math.min(e.clientY, H - mh) + 'px';
+    ctxMenu.classList.remove('hidden');
+  }
+
+  document.addEventListener('click', e => {
+    if (!ctxMenu.contains(e.target)) ctxMenu.classList.add('hidden');
+  });
+  document.addEventListener('contextmenu', e => {
+    if (!e.target.closest('.tree-node') && !e.target.closest('.thumb-card')) {
+      ctxMenu.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('ctx-open').addEventListener('click', () => {
+    ctxMenu.classList.add('hidden');
+    if (ctxMenuNode) selectFile(ctxMenuNode);
+  });
+  document.getElementById('ctx-rename').addEventListener('click', () => {
+    ctxMenu.classList.add('hidden');
+    if (ctxMenuNode) { activeNode = ctxMenuNode; document.getElementById('mi-rename')?.click(); }
+  });
+  document.getElementById('ctx-remove').addEventListener('click', () => {
+    ctxMenu.classList.add('hidden');
+    if (ctxMenuNode) { activeNode = ctxMenuNode; document.getElementById('mi-delete')?.click(); }
+  });
+  document.getElementById('ctx-props').addEventListener('click', () => {
+    ctxMenu.classList.add('hidden');
+    if (ctxMenuNode) showFileProperties(ctxMenuNode);
+  });
+
+  /* ── ファイルタイプアイコン ── */
+  function getFileIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    const map = {
+      pdf: '📕', xlsx: '📗', xls: '📗', xlsm: '📗', csv: '📗',
+      docx: '📘', doc: '📘', docm: '📘',
+      pptx: '📙', ppt: '📙', pptm: '📙',
+      txt: '📝', md: '📝', log: '📝',
+      jpg: '🖼', jpeg: '🖼', png: '🖼', gif: '🖼', bmp: '🖼', webp: '🖼',
+      zip: '🗜', rar: '🗜', '7z': '🗜',
+      mp4: '🎬', mov: '🎬', avi: '🎬',
+      mp3: '🎵', wav: '🎵',
+      html: '🌐', htm: '🌐', js: '📜', py: '📜',
+    };
+    return map[ext] || '📄';
+  }
+
+  /* ── フォルダカラー（localStorage）── */
+  let folderColorStore = {};
+  function loadFolderColorStore() {
+    try { folderColorStore = JSON.parse(localStorage.getItem('folder_colors') || '{}'); } catch { folderColorStore = {}; }
+  }
+  function saveFolderColorStore() {
+    try { localStorage.setItem('folder_colors', JSON.stringify(folderColorStore)); } catch(e) { console.warn(e); }
+  }
+  function getFolderColor(name) { return folderColorStore[name] || ''; }
+  function setFolderColor(name, color) {
+    if (color) folderColorStore[name] = color;
+    else delete folderColorStore[name];
+    saveFolderColorStore();
+  }
+
+  // フォルダカラーピッカー制御
+  let fcpTargetNode = null;
+  const fcpPopup = document.getElementById('folder-color-popup');
+  document.getElementById('fcp-grid').querySelectorAll('.fcp-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      if (!fcpTargetNode) return;
+      setFolderColor(fcpTargetNode.name, sw.dataset.color);
+      fcpPopup.classList.remove('visible');
+      fcpTargetNode = null;
+      renderTreeList();
+    });
+  });
+  document.addEventListener('click', e => {
+    if (!fcpPopup.contains(e.target)) { fcpPopup.classList.remove('visible'); fcpTargetNode = null; }
+  });
+
+  function showFolderColorPicker(e, node) {
+    e.preventDefault();
+    e.stopPropagation();
+    fcpTargetNode = node;
+    // 現在のタグを表示
+    refreshFcpTags();
+    // 画面端を超えないよう調整
+    const W = window.innerWidth, H = window.innerHeight;
+    const pw = 150, ph = 220;
+    fcpPopup.style.left = Math.min(e.clientX, W - pw) + 'px';
+    fcpPopup.style.top  = Math.min(e.clientY, H - ph) + 'px';
+    fcpPopup.classList.add('visible');
+    document.getElementById('fcp-tag-input').value = '';
+  }
+
+  /* ── フォルダタグ（localStorage）── */
+  let folderTagStore = {};
+  function loadFolderTagStore() {
+    try { folderTagStore = JSON.parse(localStorage.getItem('folder_tags') || '{}'); } catch { folderTagStore = {}; }
+  }
+  function saveFolderTagStore() {
+    try { localStorage.setItem('folder_tags', JSON.stringify(folderTagStore)); } catch(e) { console.warn(e); }
+  }
+  function getFolderTags(name) { return folderTagStore[name] || []; }
+  function addFolderTag(name, tag) {
+    if (!folderTagStore[name]) folderTagStore[name] = [];
+    if (!folderTagStore[name].includes(tag)) folderTagStore[name].push(tag);
+    saveFolderTagStore();
+  }
+  function removeFolderTag(name, tag) {
+    if (!folderTagStore[name]) return;
+    folderTagStore[name] = folderTagStore[name].filter(t => t !== tag);
+    if (!folderTagStore[name].length) delete folderTagStore[name];
+    saveFolderTagStore();
+  }
+  function getAllTags() {
+    const set = new Set();
+    Object.values(folderTagStore).forEach(tags => tags.forEach(t => set.add(t)));
+    return [...set].sort();
+  }
+
+  // カラーピッカー内のタグ表示更新
+  function refreshFcpTags() {
+    const container = document.getElementById('fcp-current-tags');
+    container.innerHTML = '';
+    if (!fcpTargetNode) return;
+    getFolderTags(fcpTargetNode.name).forEach(tag => {
+      const chip = document.createElement('div');
+      chip.className = 'folder-tag';
+      chip.innerHTML = `${tag} <span class="folder-tag-del" data-tag="${tag}">✕</span>`;
+      chip.querySelector('.folder-tag-del').addEventListener('click', () => {
+        removeFolderTag(fcpTargetNode.name, tag);
+        refreshFcpTags();
+        renderTreeList();
+        updateTagFilterBar();
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  // タグ追加ボタン
+  document.getElementById('fcp-tag-add').addEventListener('click', () => {
+    const input = document.getElementById('fcp-tag-input');
+    const tag = input.value.trim();
+    if (!tag || !fcpTargetNode) return;
+    addFolderTag(fcpTargetNode.name, tag);
+    input.value = '';
+    refreshFcpTags();
+    renderTreeList();
+    updateTagFilterBar();
+  });
+  document.getElementById('fcp-tag-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('fcp-tag-add').click(); }
+  });
+
+  // アクティブタグフィルター
+  let activeTagFilter = null;
+
+  function updateTagFilterBar() {
+    const bar = document.getElementById('tag-filter-bar');
+    const chipsEl = document.getElementById('tag-filter-chips');
+    const all = getAllTags();
+    if (!all.length) { bar.classList.remove('visible'); return; }
+    bar.classList.add('visible');
+    chipsEl.innerHTML = '';
+    all.forEach(tag => {
+      const chip = document.createElement('div');
+      chip.className = 'tag-filter-chip' + (activeTagFilter === tag ? ' active' : '');
+      chip.textContent = tag;
+      chip.addEventListener('click', () => {
+        activeTagFilter = activeTagFilter === tag ? null : tag;
+        updateTagFilterBar();
+        renderTreeList();
+      });
+      chipsEl.appendChild(chip);
+    });
+  }
+
+  document.getElementById('tag-filter-clear').addEventListener('click', () => {
+    activeTagFilter = null;
+    updateTagFilterBar();
+    renderTreeList();
+  });
+
+  /* ── クリップボード（ページコピー用）── */
+  let clipboard = null; // { node, page }
+
   /* ══════════════════════════════════════════════════
      状態
   ══════════════════════════════════════════════════ */
-  let treeRoot   = null;
-  let activeNode = null;
+  let treeRoot      = null;
+  let activeNode    = null;
+  let activeDirNode = null;      // currently displayed folder in right pane
+  let bookmarks     = [];        // [{id, name, handle}]
+  let activeWorkspaceId = null;  // currently open bookmark id
   let thumbSize  = 120;
   let modalPage  = 1;
   let modalRenderTask = null;
@@ -680,9 +1526,14 @@
   let folderTotalPages = 0;
   let folderViewVersion = 0;
 
+  // サムネイル選択状態
+  let lastSelectedCard = null;
+
   // 注釈ツール状態
-  let annoTool  = 'select';   // 'select' | 'highlight' | 'comment' | 'eraser'
-  let annoColor = '#faee50';
+  let annoTool     = 'select';   // 'select' | 'highlight' | 'comment' | 'eraser' | 'sticky'
+  let annoColor    = '#fef08a';  // ハイライト色
+  let commentColor = '#f59e0b';  // コメント色
+  let stickyColor  = '#fef08a';  // 付箋色
   let drawing   = false;
   let drawStart = null;
 
@@ -695,6 +1546,13 @@
   const contentToolbar = document.getElementById('content-toolbar');
   const contentEmpty   = document.getElementById('content-empty');
   const thumbGrid      = document.getElementById('thumb-grid');
+  // サムネイルグリッドの空白エリアをクリックで選択解除
+  thumbGrid.addEventListener('click', e => {
+    if (!e.target.closest('.thumb-card')) {
+      thumbGrid.querySelectorAll('.thumb-card.selected').forEach(c => c.classList.remove('selected'));
+      lastSelectedCard = null;
+    }
+  });
   const ctFilename     = document.getElementById('ct-filename');
   const ctPages        = document.getElementById('ct-pages');
   const modal          = document.getElementById('modal');
@@ -713,28 +1571,18 @@
   ══════════════════════════════════════════════════ */
   (async () => {
     loadAnnoStore();
+    loadRotStore();
+    loadFolderColorStore();
+    loadFolderTagStore();
     try { db = await openDB(); } catch(e) { console.warn('IndexedDB利用不可', e); }
-    const lastHandle = await loadLastHandle();
-    if (lastHandle) {
-      document.getElementById('restore-name').textContent = lastHandle.name;
-      document.getElementById('restore-bar').classList.remove('hidden');
-      document.getElementById('restore-btn').onclick = () => restoreFolder(lastHandle);
-    }
+    bookmarks = await loadAllBookmarks();
+    renderWorkspacePanel();
+    document.getElementById('restore-bar').classList.add('hidden');
   })();
 
   document.getElementById('restore-dismiss').onclick = () => {
     document.getElementById('restore-bar').classList.add('hidden');
   };
-
-  async function restoreFolder(dirHandle) {
-    try {
-      // 権限を再要求（1クリックで済む）
-      const perm = await dirHandle.requestPermission({ mode: 'read' });
-      if (perm !== 'granted') return;
-      document.getElementById('restore-bar').classList.add('hidden');
-      await openFolderHandle(dirHandle);
-    } catch(e) { console.error(e); }
-  }
 
   /* ══════════════════════════════════════════════════
      フォルダを開く
@@ -746,20 +1594,113 @@
     }
     try {
       const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
-      await openFolderHandle(dirHandle);
-      await saveLastHandle(dirHandle);
-      document.getElementById('restore-bar').classList.add('hidden');
+      await addAndOpenBookmark(dirHandle);
     } catch(e) { if (e.name !== 'AbortError') console.error(e); }
   });
+
+  // ワークスペース「＋」ボタン（フォルダを開くと同じ動作）
+  document.getElementById('workspace-add-btn').addEventListener('click', async () => {
+    if (!window.showDirectoryPicker) {
+      alert('お使いのブラウザはフォルダ選択APIに対応していません。\nChromeまたはEdgeをご利用ください。');
+      return;
+    }
+    try {
+      const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
+      await addAndOpenBookmark(dirHandle);
+    } catch(e) { if (e.name !== 'AbortError') console.error(e); }
+  });
+
+  async function addAndOpenBookmark(dirHandle) {
+    // 同名のブックマークが既存なら使い回す（handleを上書き更新）
+    let existing = bookmarks.find(b => b.name === dirHandle.name);
+    if (existing) {
+      existing.handle = dirHandle;
+      // 既存エントリのhandleをDBに更新
+      if (db) {
+        const tx = db.transaction('bookmarks', 'readwrite');
+        tx.objectStore('bookmarks').put({ id: existing.id, name: existing.name, handle: dirHandle }, existing.id);
+      }
+      activeWorkspaceId = existing.id;
+    } else {
+      const id = await addBookmarkHandle(dirHandle);
+      bookmarks.push({ id, name: dirHandle.name, handle: dirHandle });
+      activeWorkspaceId = id;
+    }
+    renderWorkspacePanel();
+    await openFolderHandle(dirHandle);
+  }
+
+  async function openBookmark(bm) {
+    try {
+      const perm = await bm.handle.requestPermission({ mode: 'read' });
+      if (perm !== 'granted') return;
+      activeWorkspaceId = bm.id;
+      renderWorkspacePanel();
+      await openFolderHandle(bm.handle);
+    } catch(e) { console.error(e); }
+  }
+
+  function renderWorkspacePanel() {
+    const list = document.getElementById('workspace-list');
+    list.innerHTML = '';
+    if (!bookmarks.length) {
+      list.innerHTML = `<div class="workspace-empty">「＋」でフォルダを登録<br>登録後はワンクリックで開けます</div>`;
+      return;
+    }
+    for (const bm of bookmarks) {
+      const item = document.createElement('div');
+      item.className = 'workspace-item' + (bm.id === activeWorkspaceId ? ' active' : '');
+
+      const icon = document.createElement('span');
+      icon.className = 'workspace-item-icon';
+      icon.textContent = '📁';
+      item.appendChild(icon);
+
+      const name = document.createElement('span');
+      name.className = 'workspace-item-name';
+      name.textContent = bm.name;
+      name.title = bm.name;
+      item.appendChild(name);
+
+      const del = document.createElement('button');
+      del.className = 'workspace-del-btn';
+      del.textContent = '✕';
+      del.title = '削除';
+      del.onclick = async (e) => {
+        e.stopPropagation();
+        await removeBookmarkById(bm.id);
+        bookmarks = bookmarks.filter(b => b.id !== bm.id);
+        if (activeWorkspaceId === bm.id) {
+          activeWorkspaceId = null;
+          treeRoot = null;
+          folderPathEl.textContent = '— フォルダを選択 —';
+          contentEmpty.style.display = 'flex';
+          contentToolbar.style.display = 'none';
+          thumbGrid.style.display = 'none';
+          folderMode = false;
+          renderTreeList();
+        }
+        renderWorkspacePanel();
+      };
+      item.appendChild(del);
+
+      item.addEventListener('click', () => openBookmark(bm));
+      list.appendChild(item);
+    }
+  }
 
   async function openFolderHandle(dirHandle) {
     folderPathEl.textContent = dirHandle.name;
     treeRoot = makeDirNode(dirHandle.name, dirHandle, true);
     activeNode = null;
+    folderMode = false;
     await scanDir(treeRoot);
     countFiles(treeRoot);
     renderTreeList();
-    await loadFolderView();
+    // 右ペインは空にする（フォルダをクリックした時に表示する）
+    contentEmpty.style.display = 'flex';
+    contentToolbar.style.display = 'none';
+    thumbGrid.style.display = 'none';
   }
 
   /* ══════════════════════════════════════════════════
@@ -779,8 +1720,11 @@
     for await (const [name, handle] of node.handle.entries()) {
       if (handle.kind === 'directory') {
         children.push(makeDirNode(name, handle));
-      } else if (handle.kind === 'file' && name.toLowerCase().endsWith('.pdf')) {
-        children.push(makeFileNode(name, handle));
+      } else if (handle.kind === 'file' && (showAllFiles || name.toLowerCase().endsWith('.pdf'))) {
+        const fileNode = makeFileNode(name, handle);
+        // ファイルメタデータ（更新日時・サイズ）を非同期で取得
+        handle.getFile().then(f => { fileNode.lastModified = f.lastModified; fileNode.fileSize = f.size; }).catch(() => {});
+        children.push(fileNode);
       }
     }
     children.sort((a, b) => {
@@ -900,6 +1844,92 @@
     }
   }
 
+  /* ══════════════════════════════════════════════════
+     フォルダの直下PDF表示（フォルダクリック時）
+  ══════════════════════════════════════════════════ */
+  async function loadDirView(node) {
+    if (!node.scanned) await scanDir(node);
+    const directPdfs = (node.children || []).filter(c => c.kind === 'file');
+
+    if (!directPdfs.length) {
+      // 直下にPDFなし → 右ペインを空に
+      contentEmpty.style.display = 'flex';
+      contentToolbar.style.display = 'none';
+      thumbGrid.style.display = 'none';
+      folderMode = false;
+      activeDirNode = null;
+      activeNode = null;
+      return;
+    }
+
+    activeDirNode = node;
+
+    folderMode = true;
+    folderPageMap = [];
+    folderTotalPages = 0;
+    const myVersion = ++folderViewVersion;
+
+    contentEmpty.style.display = 'none';
+    contentToolbar.style.display = 'flex';
+    thumbGrid.style.display = 'flex';
+    thumbGrid.innerHTML = '';
+    ctFilename.textContent = node.name;
+    ctPages.textContent = '読み込み中…';
+    document.getElementById('folder-page-jump').style.display = 'flex';
+    document.getElementById('ct-tip').style.display = 'none';
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const card = entry.target;
+          if (!card.dataset.rendered) {
+            card.dataset.rendered = '1';
+            const gp = +card.dataset.globalPage;
+            if (gp && folderPageMap[gp - 1]) {
+              renderThumb(card, folderPageMap[gp - 1].node, +card.dataset.page);
+            }
+          }
+        }
+      });
+    }, { root: thumbGrid, rootMargin: '200px' });
+
+    for (const fileNode of directPdfs) {
+      if (folderViewVersion !== myVersion) return;
+
+      const divider = createFileDivider(fileNode);
+      thumbGrid.appendChild(divider);
+
+      if (!fileNode.pdfDoc) {
+        try {
+          const ab = fileNode._file
+            ? await fileNode._file.arrayBuffer()
+            : await (await fileNode.handle.getFile()).arrayBuffer();
+          fileNode.pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+          fileNode.pageCount = fileNode.pdfDoc.numPages;
+        } catch(e) {
+          divider.textContent += ' ⚠️ 読み込み失敗';
+          continue;
+        }
+      }
+
+      if (folderViewVersion !== myVersion) return;
+
+      fileNode._dividerEl = divider;
+      fileNode._globalPageStart = folderTotalPages + 1;
+
+      for (let p = 1; p <= fileNode.pageCount; p++) {
+        folderTotalPages++;
+        folderPageMap.push({ node: fileNode, localPage: p });
+        const card = createThumbCard(fileNode, p, folderTotalPages);
+        thumbGrid.appendChild(card);
+        observer.observe(card);
+      }
+
+      renderTreeList();
+      updateFolderPageCount();
+    }
+  }
+
   function updateFolderPageCount() {
     ctPages.textContent = `合計 ${folderTotalPages} ページ`;
     document.getElementById('folder-page-total').textContent = folderTotalPages;
@@ -964,6 +1994,11 @@
 
   function renderTreeNodes(nodes, depth) {
     for (const node of nodes) {
+      // タグフィルタ：フォルダが対象タグを持たない場合はスキップ（depth=0のみ）
+      if (activeTagFilter && depth === 0 && node.kind === 'dir') {
+        if (!getFolderTags(node.name).includes(activeTagFilter)) continue;
+      }
+
       const row = document.createElement('div');
       row.className = 'tree-node' + (node === activeNode ? ' active-file' : '');
 
@@ -972,6 +2007,13 @@
       }
 
       if (node.kind === 'dir') {
+        const fc = getFolderColor(node.name);
+        if (fc) {
+          row.classList.add('has-folder-color');
+          row.style.borderLeftColor = fc;
+          row.style.background = fc + '28'; // 透過背景
+        }
+
         const toggle = document.createElement('span');
         toggle.className = 'tree-toggle';
         toggle.textContent = (node.children && node.children.length) ? (node.expanded ? '▾' : '▸') : ' ';
@@ -979,17 +2021,30 @@
 
         const icon = document.createElement('span'); icon.className = 'tree-icon';
         icon.textContent = node.expanded ? '📂' : '📁';
+        if (fc) icon.style.filter = `drop-shadow(0 0 2px ${fc})`;
         row.appendChild(icon);
 
         const label = document.createElement('span'); label.className = 'tree-label';
         label.textContent = node.name; label.title = node.name;
         row.appendChild(label);
 
+        // タグを小さいバッジで表示
+        getFolderTags(node.name).forEach(tag => {
+          const chip = document.createElement('span');
+          chip.className = 'folder-tag';
+          chip.style.cssText = 'font-size:8px;padding:0 5px;';
+          chip.textContent = tag;
+          row.appendChild(chip);
+        });
+
         row.addEventListener('click', async () => {
           if (!node.scanned) { row.classList.add('loading-node'); await scanDir(node); }
           node.expanded = !node.expanded;
           renderTreeList();
+          await loadDirView(node);
         });
+        // 右クリックでカラーピッカー＋タグ設定を表示
+        row.addEventListener('contextmenu', e => showFolderColorPicker(e, node));
         treeListEl.appendChild(row);
         if (node.expanded && node.children && node.children.length)
           renderTreeNodes(node.children, depth + 1);
@@ -998,7 +2053,7 @@
         const toggle = document.createElement('span'); toggle.className = 'tree-toggle'; toggle.textContent = ' ';
         row.appendChild(toggle);
 
-        const icon = document.createElement('span'); icon.className = 'tree-icon'; icon.textContent = '📄';
+        const icon = document.createElement('span'); icon.className = 'tree-icon'; icon.textContent = getFileIcon(node.name);
         row.appendChild(icon);
 
         const label = document.createElement('span'); label.className = 'tree-label';
@@ -1010,9 +2065,60 @@
           pg.textContent = node.pageCount + 'p'; row.appendChild(pg);
         }
         row.addEventListener('click', () => selectFile(node));
+
+        // ダブルクリックでインライン名前変更
+        label.addEventListener('dblclick', e => {
+          e.stopPropagation();
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = node.name.replace(/\.pdf$/i, '');
+          input.style.cssText = 'width:100%;font-size:11px;border:1px solid #4a7cb8;border-radius:2px;padding:1px 3px;background:#fff;color:#222;outline:none;';
+          label.replaceWith(input);
+          input.select();
+          const commit = () => {
+            let newName = input.value.trim();
+            if (!newName) { input.replaceWith(label); return; }
+            if (!newName.toLowerCase().endsWith('.pdf')) newName += '.pdf';
+            node.name = newName;
+            label.textContent = newName; label.title = newName;
+            input.replaceWith(label);
+            renderTreeList();
+          };
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', ev => {
+            if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+            if (ev.key === 'Escape') { input.value = node.name.replace(/\.pdf$/i,''); input.blur(); }
+          });
+        });
+
+        // 右クリックでプロパティ
+        row.addEventListener('contextmenu', e => { e.preventDefault(); showContextMenu(e, node); });
+
         treeListEl.appendChild(row);
       }
     }
+  }
+
+  async function showFileProperties(node) {
+    const fmt = n => n != null ? (n >= 1024*1024 ? (n/1024/1024).toFixed(2)+' MB' : (n/1024).toFixed(1)+' KB') : '—';
+    const fmtDate = ts => ts ? new Date(ts).toLocaleString('ja-JP') : '—';
+    // ファイルメタデータがまだなら取得
+    if (!node.lastModified && node.handle) {
+      try { const f = await node.handle.getFile(); node.lastModified = f.lastModified; node.fileSize = f.size; } catch {}
+    }
+    const path = getNodePath(node);
+    const fileType = node.name.toLowerCase().endsWith('.pdf')
+      ? 'PDFファイル (.pdf)'
+      : node.name.includes('.') ? node.name.split('.').pop().toUpperCase() + 'ファイル' : 'ファイル';
+    showDialog('📄 プロパティ',
+      `<table>
+        <tr><td>ファイル名</td><td><b>${node.name}</b></td></tr>
+        <tr><td>場所</td><td style="word-break:break-all;font-size:11px;">${path}</td></tr>
+        <tr><td>ファイル種類</td><td>${fileType}</td></tr>
+        <tr><td>サイズ</td><td>${fmt(node.fileSize)}</td></tr>
+        <tr><td>更新日時</td><td>${fmtDate(node.lastModified)}</td></tr>
+        <tr><td>ページ数</td><td>${node.pageCount ? node.pageCount + ' ページ' : '（未読み込み）'}</td></tr>
+      </table>`);
   }
 
   /* ══════════════════════════════════════════════════
@@ -1023,6 +2129,17 @@
       activeNode = node;
       renderTreeList();
       node._dividerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    // PDFでないファイルはスキップ
+    if (!node.name.toLowerCase().endsWith('.pdf')) {
+      activeNode = node; renderTreeList();
+      ctFilename.textContent = node.name;
+      ctPages.textContent = '（PDF以外）';
+      contentToolbar.style.display = 'flex';
+      contentEmpty.style.display = 'none';
+      thumbGrid.style.display = 'flex';
+      thumbGrid.innerHTML = `<div style="padding:40px;color:#888;font-size:13px;">このファイルはPDF形式ではないため表示できません。</div>`;
       return;
     }
     if (!node.pdfDoc) {
@@ -1067,17 +2184,49 @@
     const label = document.createElement('div'); label.className = 'thumb-label';
     label.textContent = globalPage != null ? globalPage : pageNum;
     card.appendChild(frame); card.appendChild(label);
-    card.addEventListener('click', () => openModal(node, pageNum));
+    // シングルクリック → 選択、ダブルクリック → 全画面表示
+    // Ctrl+クリック: トグル選択、Shift+クリック: 範囲選択
+    let cardClickTimer = null;
+    card.addEventListener('click', e => {
+      if (cardClickTimer) { clearTimeout(cardClickTimer); cardClickTimer = null; return; }
+      cardClickTimer = setTimeout(() => {
+        cardClickTimer = null;
+        const allCards = [...thumbGrid.querySelectorAll('.thumb-card')];
+        if (e.shiftKey && lastSelectedCard && allCards.includes(lastSelectedCard)) {
+          // Shift+クリック: 範囲選択
+          if (!e.ctrlKey) thumbGrid.querySelectorAll('.thumb-card.selected').forEach(c => c.classList.remove('selected'));
+          const i1 = allCards.indexOf(lastSelectedCard);
+          const i2 = allCards.indexOf(card);
+          const [from, to] = i1 < i2 ? [i1, i2] : [i2, i1];
+          allCards.slice(from, to + 1).forEach(c => c.classList.add('selected'));
+        } else if (e.ctrlKey) {
+          card.classList.toggle('selected');
+          lastSelectedCard = card;
+        } else {
+          thumbGrid.querySelectorAll('.thumb-card.selected').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          lastSelectedCard = card;
+        }
+      }, 220);
+    });
+    card.addEventListener('dblclick', () => {
+      if (cardClickTimer) { clearTimeout(cardClickTimer); cardClickTimer = null; }
+      openModal(node, pageNum);
+    });
+    card.addEventListener('contextmenu', e => { e.preventDefault(); showContextMenu(e, node); });
     return card;
   }
 
   async function renderThumb(card, node, pageNum) {
     const frame = card.querySelector('.thumb-frame');
     try {
+      const rotation = getRotation(node.name, pageNum);
       const page = await node.pdfDoc.getPage(pageNum);
-      const vp0 = page.getViewport({ scale: 1 });
+      const vp0 = page.getViewport({ scale: 1, rotation });
+      // 回転後の長辺をthumbSizeに合わせる
+      const refDim = (rotation % 180 === 0) ? vp0.width : vp0.width;
       const scale = thumbSize / vp0.width;
-      const viewport = page.getViewport({ scale });
+      const viewport = page.getViewport({ scale, rotation });
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width; canvas.height = viewport.height;
       frame.style.width = viewport.width + 'px'; frame.style.height = viewport.height + 'px';
@@ -1098,7 +2247,7 @@
 
   document.getElementById('thumb-size-select').addEventListener('change', e => {
     thumbSize = +e.target.value;
-    if (folderMode) loadFolderView();
+    if (folderMode && activeDirNode) loadDirView(activeDirNode);
     else if (activeNode) selectFile(activeNode);
   });
 
@@ -1110,12 +2259,38 @@
     for (const a of annos) {
       if (a.type === 'highlight') {
         ctx.save();
-        ctx.globalAlpha = 0.38;
+        ctx.globalAlpha = 0.42;
         ctx.fillStyle = a.color;
         ctx.fillRect(a.x * W, a.y * H, a.w * W, a.h * H);
         ctx.restore();
+      } else if (a.type === 'sticky') {
+        // サムネイル用：付箋を色付き矩形＋テキストで描画
+        const sx = a.x * W, sy = a.y * H, sw = a.w * W, sh = a.h * H;
+        ctx.save();
+        ctx.fillStyle = a.color;
+        ctx.globalAlpha = 0.92;
+        ctx.fillRect(sx, sy, sw, sh);
+        // ヘッダー帯
+        ctx.filter = 'brightness(0.82)';
+        ctx.fillRect(sx, sy, sw, small ? 4 : 7);
+        ctx.filter = 'none';
+        ctx.globalAlpha = 1;
+        if (!small && a.text) {
+          ctx.fillStyle = '#333';
+          ctx.font = `${Math.max(8, sw * 0.07)}px sans-serif`;
+          ctx.fillText(a.text.slice(0, 30), sx + 4, sy + 16, sw - 8);
+        }
+        ctx.restore();
+      } else if (a.type === 'comment' && small) {
+        // サムネイル用：コメントピン（小丸）
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(a.x * W, a.y * H, 4, 0, Math.PI * 2);
+        ctx.fillStyle = a.color || '#f59e0b';
+        ctx.fill();
+        ctx.restore();
       }
-      // コメントはDOMピンで表示するのでcanvasには描かない
+      // コメント（フルサイズ）はDOMピンで表示するのでcanvasには描かない
     }
   }
 
@@ -1126,6 +2301,8 @@
     modal._node = node;
     modalPage = startPage;
     modal.classList.remove('hidden');
+    // 印刷ダイアログを確実に非表示にする
+    document.getElementById('print-dialog').classList.add('hidden');
     modalTitle.textContent = node.name;
     modalPageTotal.textContent = node.pageCount;
     modalPageInput.max = node.pageCount;
@@ -1143,7 +2320,8 @@
     document.getElementById('modal-zoom-label').textContent = Math.round(modalZoomSteps[modalZoomIdx] * 100) + '%';
 
     const page = await node.pdfDoc.getPage(modalPage);
-    const viewport = page.getViewport({ scale: modalZoomSteps[modalZoomIdx] });
+    const rotation = getRotation(node.name, modalPage);
+    const viewport = page.getViewport({ scale: modalZoomSteps[modalZoomIdx], rotation });
     const W = viewport.width, H = viewport.height;
     modalCanvas.width = W; modalCanvas.height = H;
     annoCanvas.width = W; annoCanvas.height = H;
@@ -1166,11 +2344,20 @@
     const annos = getAnnotations(node.name, modalPage);
     drawAnnotationsOnCtx(annoCtx, annos, W, H, false);
     updateCommentPins();
+    renderStickyNotes();
+  }
+
+  // アクティブなコメントポップアップを閉じる
+  let activeCommentViewPin = null;
+  function closeCommentViewPopup() {
+    const vp = document.getElementById('comment-view-popup');
+    vp.classList.remove('visible');
+    activeCommentViewPin = null;
   }
 
   function updateCommentPins() {
-    // 既存ピンを削除
-    canvasWrap.querySelectorAll('.comment-pin, .comment-pin-label').forEach(el => el.remove());
+    canvasWrap.querySelectorAll('.comment-pin').forEach(el => el.remove());
+    closeCommentViewPopup();
     const node = modal._node;
     if (!node) return;
     const annos = getAnnotations(node.name, modalPage);
@@ -1178,33 +2365,53 @@
     annos.filter(a => a.type === 'comment').forEach((a, i) => {
       const pin = document.createElement('div');
       pin.className = 'comment-pin';
-      pin.style.background = a.color || '#ff9900';
-      pin.style.left = (a.x * W - 12) + 'px';
-      pin.style.top  = (a.y * H - 12) + 'px';
+      pin.style.background = a.color || '#f59e0b';
+      pin.style.color = '#fff';
+      pin.textContent = '💬';
+      pin.style.fontSize = '13px';
+      pin.style.left = (a.x * W - 13) + 'px';
+      pin.style.top  = (a.y * H - 13) + 'px';
       pin.dataset.idx = i;
+      pin.title = '右クリック: 削除';
 
-      const tip = document.createElement('div');
-      tip.className = 'comment-pin-label';
-      tip.textContent = a.text;
-      tip.style.left = (a.x * W + 14) + 'px';
-      tip.style.top  = (a.y * H - 8) + 'px';
+      // クリックでポップアップ表示
+      pin.addEventListener('click', e => {
+        e.stopPropagation();
+        const vp = document.getElementById('comment-view-popup');
+        if (activeCommentViewPin === pin && vp.classList.contains('visible')) {
+          closeCommentViewPopup();
+          return;
+        }
+        activeCommentViewPin = pin;
+        vp.textContent = a.text;
+        // ピンの右側に表示、画面端を考慮
+        const px = a.x * W + 16;
+        const py = a.y * H - 8;
+        vp.style.left = px + 'px';
+        vp.style.top  = py + 'px';
+        vp.classList.add('visible');
+      });
 
       // 右クリックで削除
       pin.addEventListener('contextmenu', e => {
         e.preventDefault();
-        const annos = getAnnotations(node.name, modalPage);
-        const commentAnnos = annos.filter(a => a.type === 'comment');
+        const allAnnos = getAnnotations(node.name, modalPage);
+        const commentAnnos = allAnnos.filter(a => a.type === 'comment');
         const target = commentAnnos[+pin.dataset.idx];
-        const newList = annos.filter(a => a !== target);
+        const newList = allAnnos.filter(a => a !== target);
         setAnnotations(node.name, modalPage, newList);
         redrawAnnoOverlay();
         refreshThumb(node, modalPage);
       });
 
       canvasWrap.appendChild(pin);
-      canvasWrap.appendChild(tip);
     });
   }
+
+  // キャンバス外クリックでコメントポップアップを閉じる
+  canvasWrap.addEventListener('click', e => {
+    if (!e.target.classList.contains('comment-pin')) closeCommentViewPopup();
+  });
 
   function updateModalBtns() {
     const total = modal._node ? modal._node.pageCount : 1;
@@ -1247,11 +2454,16 @@
     annoTool = tool;
     document.querySelectorAll('.anno-tool-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === tool));
     annoCanvas.className = `tool-${tool}`;
-    // ハイライト色スウォッチはhighlight選択時のみ有効
+    // ツールに応じてカラーグループを表示
+    document.getElementById('hl-colors').classList.toggle('visible', tool === 'highlight');
+    document.getElementById('cm-colors').classList.toggle('visible', tool === 'comment');
+    document.getElementById('st-colors').classList.toggle('visible', tool === 'sticky');
   }
   document.getElementById('tool-select').addEventListener('click', () => setAnnoTool('select'));
+  document.getElementById('tool-hl-btn').addEventListener('click', () => setAnnoTool('highlight'));
   document.getElementById('tool-comment').addEventListener('click', () => setAnnoTool('comment'));
   document.getElementById('tool-eraser').addEventListener('click', () => setAnnoTool('eraser'));
+  document.getElementById('tool-sticky').addEventListener('click', () => setAnnoTool('sticky'));
 
   // ハイライト色スウォッチ
   document.querySelectorAll('.anno-color-swatch').forEach(sw => {
@@ -1260,6 +2472,26 @@
       sw.classList.add('active');
       annoColor = sw.dataset.color;
       setAnnoTool('highlight');
+    });
+  });
+
+  // コメント色スウォッチ
+  document.querySelectorAll('.anno-color-swatch-sm[id^="cswatch-"]').forEach(sw => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('.anno-color-swatch-sm[id^="cswatch-"]').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      commentColor = sw.dataset.ccolor;
+      setAnnoTool('comment');
+    });
+  });
+
+  // 付箋色スウォッチ
+  document.querySelectorAll('.anno-color-swatch-sm[id^="sswatch-"]').forEach(sw => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('.anno-color-swatch-sm[id^="sswatch-"]').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      stickyColor = sw.dataset.scolor;
+      setAnnoTool('sticky');
     });
   });
 
@@ -1296,6 +2528,8 @@
       showCommentPopup(e, pos);
     } else if (annoTool === 'eraser') {
       eraseAt(pos);
+    } else if (annoTool === 'sticky') {
+      placeStickyNote(e, pos);
     }
   });
 
@@ -1350,6 +2584,9 @@
       if (a.type === 'comment') {
         return !(Math.abs(px - a.x) < 0.03 && Math.abs(py - a.y) < 0.03);
       }
+      if (a.type === 'sticky') {
+        return !(px >= a.x && px <= a.x + a.w && py >= a.y && py <= a.y + a.h);
+      }
       return true;
     });
     setAnnotations(node.name, modalPage, newList);
@@ -1378,7 +2615,7 @@
       const node = modal._node;
       const W = annoCanvas.width, H = annoCanvas.height;
       const annos = getAnnotations(node.name, modalPage);
-      annos.push({ type:'comment', x: pendingCommentPos.x / W, y: pendingCommentPos.y / H, text, color: '#ff9900' });
+      annos.push({ type:'comment', x: pendingCommentPos.x / W, y: pendingCommentPos.y / H, text, color: commentColor });
       setAnnotations(node.name, modalPage, annos);
       redrawAnnoOverlay();
       refreshThumb(node, modalPage);
@@ -1409,11 +2646,162 @@
   }
 
   /* ══════════════════════════════════════════════════
+     付箋（スティッキーノート）
+  ══════════════════════════════════════════════════ */
+  function placeStickyNote(mouseEvent, canvasPos) {
+    const node = modal._node;
+    if (!node) return;
+    const W = annoCanvas.width, H = annoCanvas.height;
+    // デフォルトサイズ: 180x110px をカンバス比率に変換
+    const sw = 180 / W, sh = 110 / H;
+    const sx = canvasPos.x / W, sy = canvasPos.y / H;
+    const anno = { type: 'sticky', x: sx, y: sy, w: sw, h: sh, color: stickyColor, text: '' };
+    const annos = getAnnotations(node.name, modalPage);
+    annos.push(anno);
+    setAnnotations(node.name, modalPage, annos);
+    renderStickyNotes();
+    // 付箋が追加されたら選択モードに戻す
+    setAnnoTool('select');
+  }
+
+  function renderStickyNotes() {
+    canvasWrap.querySelectorAll('.sticky-note').forEach(el => el.remove());
+    const node = modal._node;
+    if (!node) return;
+    const annos = getAnnotations(node.name, modalPage);
+    const W = annoCanvas.width, H = annoCanvas.height;
+    annos.filter(a => a.type === 'sticky').forEach((a, rawIdx) => {
+      const stickyIdx = annos.indexOf(a);
+      createStickyNoteEl(a, stickyIdx, W, H, node);
+    });
+  }
+
+  function createStickyNoteEl(a, annoIdx, W, H, node) {
+    const el = document.createElement('div');
+    el.className = 'sticky-note';
+    el.style.left   = (a.x * W) + 'px';
+    el.style.top    = (a.y * H) + 'px';
+    el.style.width  = (a.w * W) + 'px';
+    el.style.minHeight = (a.h * H) + 'px';
+    el.style.background = a.color;
+
+    // ヘッダー（ドラッグ＆削除）
+    const header = document.createElement('div');
+    header.className = 'sticky-note-header';
+    header.style.background = a.color;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'sticky-note-close';
+    closeBtn.textContent = '×';
+    closeBtn.title = '削除';
+    closeBtn.addEventListener('mousedown', e => e.stopPropagation());
+    closeBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const allAnnos = getAnnotations(node.name, modalPage);
+      const newList = allAnnos.filter((_, i) => i !== annoIdx);
+      setAnnotations(node.name, modalPage, newList);
+      el.remove();
+      refreshThumb(node, modalPage);
+    });
+    header.appendChild(closeBtn);
+
+    // テキストエリア
+    const textarea = document.createElement('textarea');
+    textarea.className = 'sticky-note-body';
+    textarea.value = a.text;
+    textarea.placeholder = 'メモを入力…';
+    textarea.addEventListener('input', () => {
+      const allAnnos = getAnnotations(node.name, modalPage);
+      if (allAnnos[annoIdx]) allAnnos[annoIdx].text = textarea.value;
+      setAnnotations(node.name, modalPage, allAnnos);
+      refreshThumb(node, modalPage);
+    });
+    textarea.addEventListener('mousedown', e => e.stopPropagation());
+
+    // リサイズハンドル
+    const resizeHandle = document.createElement('div');
+    resizeHandle.className = 'sticky-note-resize';
+    resizeHandle.textContent = '◢';
+    resizeHandle.title = 'ドラッグでリサイズ';
+
+    el.appendChild(header);
+    el.appendChild(textarea);
+    el.appendChild(resizeHandle);
+    canvasWrap.appendChild(el);
+
+    // ─── ドラッグ移動 ───
+    let dragActive = false, dragStartX = 0, dragStartY = 0, origLeft = 0, origTop = 0;
+    header.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      dragActive = true;
+      dragStartX = e.clientX; dragStartY = e.clientY;
+      origLeft = parseFloat(el.style.left); origTop = parseFloat(el.style.top);
+      e.preventDefault();
+    });
+    document.addEventListener('mousemove', onDragMove);
+    document.addEventListener('mouseup', onDragUp);
+    function onDragMove(e) {
+      if (!dragActive) return;
+      const dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
+      const newLeft = Math.max(0, Math.min(W - 40, origLeft + dx));
+      const newTop  = Math.max(0, Math.min(H - 20, origTop  + dy));
+      el.style.left = newLeft + 'px';
+      el.style.top  = newTop  + 'px';
+    }
+    function onDragUp() {
+      if (!dragActive) return;
+      dragActive = false;
+      const allAnnos = getAnnotations(node.name, modalPage);
+      if (allAnnos[annoIdx]) {
+        allAnnos[annoIdx].x = parseFloat(el.style.left) / W;
+        allAnnos[annoIdx].y = parseFloat(el.style.top)  / H;
+        setAnnotations(node.name, modalPage, allAnnos);
+        refreshThumb(node, modalPage);
+      }
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup', onDragUp);
+    }
+
+    // ─── リサイズ ───
+    let resizeActive = false, rsStartX = 0, rsStartY = 0, rsOrigW = 0, rsOrigH = 0;
+    resizeHandle.addEventListener('mousedown', e => {
+      if (e.button !== 0) return;
+      resizeActive = true;
+      rsStartX = e.clientX; rsStartY = e.clientY;
+      rsOrigW = el.offsetWidth; rsOrigH = el.offsetHeight;
+      e.preventDefault(); e.stopPropagation();
+    });
+    document.addEventListener('mousemove', onResizeMove);
+    document.addEventListener('mouseup', onResizeUp);
+    function onResizeMove(e) {
+      if (!resizeActive) return;
+      const nw = Math.max(120, rsOrigW + e.clientX - rsStartX);
+      const nh = Math.max(80,  rsOrigH + e.clientY - rsStartY);
+      el.style.width    = nw + 'px';
+      el.style.minHeight = nh + 'px';
+    }
+    function onResizeUp() {
+      if (!resizeActive) return;
+      resizeActive = false;
+      const allAnnos = getAnnotations(node.name, modalPage);
+      if (allAnnos[annoIdx]) {
+        allAnnos[annoIdx].w = el.offsetWidth  / W;
+        allAnnos[annoIdx].h = el.offsetHeight / H;
+        setAnnotations(node.name, modalPage, allAnnos);
+        refreshThumb(node, modalPage);
+      }
+      document.removeEventListener('mousemove', onResizeMove);
+      document.removeEventListener('mouseup', onResizeUp);
+    }
+  }
+
+  /* ══════════════════════════════════════════════════
      キーボードショートカット
   ══════════════════════════════════════════════════ */
   document.addEventListener('keydown', e => {
     if (!modal.classList.contains('hidden')) {
-      if (document.activeElement === modalPageInput || document.activeElement === document.getElementById('comment-text')) return;
+      const ae = document.activeElement;
+      if (ae === modalPageInput || ae === document.getElementById('comment-text') || ae?.classList.contains('sticky-note-body')) return;
       if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   modalGoTo(modalPage - 1);
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  modalGoTo(modalPage + 1);
       if (e.key === 'Escape') {
@@ -1426,6 +2814,7 @@
       if (e.key === 'c') setAnnoTool('comment');
       if (e.key === 'e') setAnnoTool('eraser');
       if (e.key === 's') setAnnoTool('select');
+      if (e.key === 'n') setAnnoTool('sticky');
     }
   });
 
@@ -1462,6 +2851,504 @@
         treeRoot.children.push({ kind:'file', name:file.name, handle:null, pdfDoc:null, pageCount:null, _file:file });
     }
     countFiles(treeRoot); renderTreeList();
+  });
+
+  /* ══════════════════════════════════════════════════
+     メニューシステム
+  ══════════════════════════════════════════════════ */
+
+  // ── ドロップダウン開閉 ──
+  document.querySelectorAll('.menu-item[data-menu]').forEach(item => {
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = item.classList.contains('open');
+      closeAllMenus();
+      if (!isOpen) item.classList.add('open');
+    });
+    // メニューが開いている間、他のメニュー項目にホバーで切り替え
+    item.addEventListener('mouseenter', () => {
+      if (document.querySelector('.menu-item.open')) {
+        closeAllMenus();
+        item.classList.add('open');
+      }
+    });
+  });
+  document.addEventListener('click', closeAllMenus);
+  function closeAllMenus() {
+    document.querySelectorAll('.menu-item.open').forEach(m => m.classList.remove('open'));
+  }
+
+  // ── 汎用ダイアログ ──
+  function showDialog(title, bodyHTML, footerHTML) {
+    document.getElementById('app-dialog-title-text').textContent = title;
+    document.getElementById('app-dialog-body').innerHTML = bodyHTML;
+    const footer = document.getElementById('app-dialog-footer');
+    if (footerHTML !== undefined) footer.innerHTML = footerHTML;
+    else footer.innerHTML = '<button class="app-dialog-btn primary" id="app-dialog-ok">OK</button>';
+    document.getElementById('app-dialog-overlay').classList.remove('hidden');
+    // OKボタンにイベント
+    footer.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', closeDialog);
+    });
+    const okBtn = document.getElementById('app-dialog-ok');
+    if (okBtn) okBtn.addEventListener('click', closeDialog);
+  }
+  function closeDialog() {
+    document.getElementById('app-dialog-overlay').classList.add('hidden');
+  }
+  document.getElementById('app-dialog-close').addEventListener('click', closeDialog);
+  document.getElementById('app-dialog-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('app-dialog-overlay')) closeDialog();
+  });
+
+  // ── ファイルメニュー ──
+
+  // 新規作成
+  document.getElementById('mi-new').addEventListener('click', () => {
+    closeAllMenus();
+    if (treeRoot && !confirm('現在のビューをクリアして新規作成しますか？')) return;
+    treeRoot = null; activeNode = null; activeDirNode = null;
+    activeWorkspaceId = null;
+    folderMode = false; folderPageMap = []; folderTotalPages = 0;
+    folderPathEl.textContent = '— フォルダを選択 —';
+    fileCountEl.textContent = '';
+    contentEmpty.style.display = 'flex';
+    contentToolbar.style.display = 'none';
+    thumbGrid.style.display = 'none';
+    renderTreeList();
+    renderWorkspacePanel();
+  });
+
+  // ファイルの取り込み
+  document.getElementById('mi-import-file').addEventListener('click', () => {
+    closeAllMenus();
+    document.getElementById('btn-upload-files').click();
+  });
+
+  // フォルダの取り込み
+  document.getElementById('mi-import-folder').addEventListener('click', () => {
+    closeAllMenus();
+    document.getElementById('btn-open-folder').click();
+  });
+
+  // 名前を付けて保存（現在選択中のPDFをダウンロード）
+  document.getElementById('mi-save-as').addEventListener('click', async () => {
+    closeAllMenus();
+    const node = activeNode || (folderMode ? null : null);
+    const target = modal.classList.contains('hidden') ? activeNode : modal._node;
+    if (!target || !target.pdfDoc) {
+      showDialog('名前を付けて保存', '<p style="color:#888">PDFファイルを選択してください。</p>');
+      return;
+    }
+    try {
+      // File System Access API で保存ダイアログ
+      if (window.showSaveFilePicker) {
+        const fh = await window.showSaveFilePicker({
+          suggestedName: target.name,
+          types: [{ description: 'PDF', accept: { 'application/pdf': ['.pdf'] } }]
+        });
+        const ab = target._file
+          ? await target._file.arrayBuffer()
+          : await (await target.handle.getFile()).arrayBuffer();
+        const w = await fh.createWritable();
+        await w.write(ab); await w.close();
+      } else {
+        // フォールバック: blobダウンロード
+        const ab = target._file
+          ? await target._file.arrayBuffer()
+          : await (await target.handle.getFile()).arrayBuffer();
+        const url = URL.createObjectURL(new Blob([ab], { type: 'application/pdf' }));
+        const a = document.createElement('a'); a.href = url; a.download = target.name;
+        a.click(); URL.revokeObjectURL(url);
+      }
+    } catch(e) { if (e.name !== 'AbortError') console.error(e); }
+  });
+
+  // 名前の変更
+  document.getElementById('mi-rename').addEventListener('click', () => {
+    closeAllMenus();
+    const target = activeNode;
+    if (!target) { showDialog('名前の変更', '<p style="color:#888">ファイルを選択してください。</p>'); return; }
+    const newName = prompt('新しい名前を入力してください:', target.name);
+    if (!newName || newName === target.name) return;
+    // ツリー内の名前を変更（実ファイルは変更不可）
+    target.name = newName.endsWith('.pdf') ? newName : newName + '.pdf';
+    renderTreeList();
+    if (ctFilename.textContent === target.name) ctFilename.textContent = target.name;
+  });
+
+  // プロパティ
+  document.getElementById('mi-prop').addEventListener('click', () => {
+    closeAllMenus();
+    const target = activeNode || (activeDirNode ? null : null);
+    if (!target) {
+      if (activeDirNode) {
+        showDialog('プロパティ', `<table>
+          <tr><td>名前</td><td>${activeDirNode.name}</td></tr>
+          <tr><td>種類</td><td>フォルダ</td></tr>
+          <tr><td>ファイル数</td><td>${(activeDirNode.children || []).filter(c => c.kind === 'file').length} 件</td></tr>
+        </table>`);
+      } else {
+        showDialog('プロパティ', '<p style="color:#888">ファイルまたはフォルダを選択してください。</p>');
+      }
+      return;
+    }
+    showDialog('プロパティ', `<table>
+      <tr><td>名前</td><td>${target.name}</td></tr>
+      <tr><td>種類</td><td>PDF ドキュメント</td></tr>
+      <tr><td>ページ数</td><td>${target.pageCount ?? '未読み込み'} ページ</td></tr>
+      <tr><td>保存場所</td><td>${target.handle ? 'ローカルファイル' : '手動追加'}</td></tr>
+    </table>`);
+  });
+
+  // プリンタの設定
+  document.getElementById('mi-print-setup').addEventListener('click', () => {
+    closeAllMenus();
+    showDialog('プリンタの設定',
+      `<p>詳細なプリンタ設定はシステムの印刷ダイアログから行えます。</p>
+       <p style="margin-top:8px;color:#888;font-size:11px;">※ブラウザ版の制限により、OSのプリンタプロパティは直接開けません。<br>アプリ版では完全対応予定。</p>`,
+      `<button class="app-dialog-btn primary" onclick="window.print();document.getElementById('app-dialog-overlay').classList.add('hidden')">印刷ダイアログを開く</button>
+       <button class="app-dialog-btn" data-close>閉じる</button>`);
+  });
+
+  // 印刷
+  document.getElementById('mi-print-menu').addEventListener('click', () => {
+    closeAllMenus();
+    if (!modal.classList.contains('hidden')) {
+      document.getElementById('modal-print').click();
+    } else {
+      window.print();
+    }
+  });
+
+  // ── 編集メニュー ──
+
+  // 元に戻す / やり直し（注釈のundo/redo）
+  let annoHistory = [], annoFuture = [];
+  function annoSnapshot() {
+    annoHistory.push(JSON.stringify(annoStore));
+    annoFuture = [];
+    if (annoHistory.length > 30) annoHistory.shift();
+  }
+  document.getElementById('mi-undo').addEventListener('click', () => {
+    closeAllMenus();
+    if (!annoHistory.length) return;
+    annoFuture.push(JSON.stringify(annoStore));
+    annoStore = JSON.parse(annoHistory.pop());
+    saveAnnoStore();
+    if (modal._node) { redrawAnnoOverlay(); refreshThumb(modal._node, modalPage); }
+  });
+  document.getElementById('mi-redo').addEventListener('click', () => {
+    closeAllMenus();
+    if (!annoFuture.length) return;
+    annoHistory.push(JSON.stringify(annoStore));
+    annoStore = JSON.parse(annoFuture.pop());
+    saveAnnoStore();
+    if (modal._node) { redrawAnnoOverlay(); refreshThumb(modal._node, modalPage); }
+  });
+
+  // 切り取り（現在表示ページをクリップボードに保存→ビューから除外）
+  document.getElementById('mi-cut').addEventListener('click', () => {
+    closeAllMenus();
+    const node = modal._node || activeNode;
+    if (!node) return;
+    clipboard = { node, page: modal.classList.contains('hidden') ? 1 : modalPage };
+    alert(`「${node.name}」ページ ${clipboard.page} を切り取りました（クリップボード内）`);
+  });
+
+  // コピー
+  document.getElementById('mi-copy').addEventListener('click', () => {
+    closeAllMenus();
+    const node = modal._node || activeNode;
+    if (!node) return;
+    clipboard = { node, page: modal.classList.contains('hidden') ? 1 : modalPage };
+    alert(`「${node.name}」ページ ${clipboard.page} をコピーしました（クリップボード内）`);
+  });
+
+  // 貼り付け（クリップボード内容の確認）
+  document.getElementById('mi-paste').addEventListener('click', () => {
+    closeAllMenus();
+    if (!clipboard) { showDialog('貼り付け', '<p style="color:#888">クリップボードにコピーされたページがありません。</p>'); return; }
+    showDialog('貼り付け', `<p>クリップボード内容：</p>
+      <p style="margin-top:8px;">📄 ${clipboard.node.name} — ページ ${clipboard.page}</p>
+      <p style="margin-top:12px;color:#888;font-size:11px;">※ページ結合・分割はアプリ版で完全対応予定。</p>`);
+  });
+
+  // 削除（ツリーからファイルを除去）
+  document.getElementById('mi-delete').addEventListener('click', () => {
+    closeAllMenus();
+    if (!activeNode || !treeRoot) return;
+    if (!confirm(`「${activeNode.name}」をリストから削除しますか？\n（実ファイルは削除されません）`)) return;
+    function removeFromTree(node, target) {
+      if (!node.children) return;
+      const idx = node.children.indexOf(target);
+      if (idx !== -1) { node.children.splice(idx, 1); return; }
+      node.children.forEach(c => removeFromTree(c, target));
+    }
+    removeFromTree(treeRoot, activeNode);
+    activeNode = null;
+    countFiles(treeRoot);
+    renderTreeList();
+    contentEmpty.style.display = 'flex';
+    contentToolbar.style.display = 'none';
+    thumbGrid.style.display = 'none';
+  });
+
+  // 複製（同名＋コピーをツリーに追加）
+  document.getElementById('mi-duplicate').addEventListener('click', () => {
+    closeAllMenus();
+    if (!activeNode || !treeRoot) return;
+    const orig = activeNode;
+    const dupName = orig.name.replace(/\.pdf$/i, '') + '_コピー.pdf';
+    const dup = { kind: 'file', name: dupName, handle: orig.handle, pdfDoc: orig.pdfDoc,
+                  pageCount: orig.pageCount, _file: orig._file };
+    // 同じ親に追加
+    function addAfterInTree(parent, target, newNode) {
+      if (!parent.children) return false;
+      const idx = parent.children.indexOf(target);
+      if (idx !== -1) { parent.children.splice(idx + 1, 0, newNode); return true; }
+      return parent.children.some(c => addAfterInTree(c, target, newNode));
+    }
+    addAfterInTree(treeRoot, orig, dup);
+    countFiles(treeRoot);
+    renderTreeList();
+    if (activeDirNode) loadDirView(activeDirNode);
+  });
+
+  // 回転
+  function rotateActivePage(delta) {
+    const node = modal.classList.contains('hidden') ? activeNode : modal._node;
+    const page = modal.classList.contains('hidden') ? null : modalPage;
+    if (!node) return;
+    if (page !== null) {
+      // モーダルで開いているページを回転
+      applyRotation(node.name, page, delta);
+      renderModalPage();
+      refreshThumb(node, page);
+    } else if (activeDirNode) {
+      // フォルダビューの全ページを回転（選択が曖昧なので何もしないか1ページ目）
+      showDialog('回転', '<p>回転するには、サムネイルをクリックして全画面で開いてから回転してください。</p>');
+    }
+  }
+  document.getElementById('mi-rotate-cw') .addEventListener('click', () => { closeAllMenus(); rotateActivePage(90); });
+  document.getElementById('mi-rotate-ccw').addEventListener('click', () => { closeAllMenus(); rotateActivePage(-90); });
+  document.getElementById('mi-rotate-180').addEventListener('click', () => { closeAllMenus(); rotateActivePage(180); });
+
+  // すべてを選択
+  document.getElementById('mi-select-all').addEventListener('click', () => {
+    closeAllMenus();
+    // サムネイルカードを全選択（視覚ハイライト）
+    thumbGrid.querySelectorAll('.thumb-card').forEach(c => c.classList.add('selected'));
+  });
+
+  // 検索
+  document.getElementById('mi-find').addEventListener('click', () => {
+    closeAllMenus();
+    openSearchDialog();
+  });
+
+  function openSearchDialog() {
+    showDialog('検索',
+      `<input class="search-input" id="search-input" placeholder="ファイル名を検索..." autocomplete="off">
+       <div class="search-results" id="search-results"></div>`,
+      `<button class="app-dialog-btn" data-close>閉じる</button>`);
+    const input = document.getElementById('search-input');
+    const results = document.getElementById('search-results');
+    input.focus();
+    function doSearch() {
+      const q = input.value.trim().toLowerCase();
+      results.innerHTML = '';
+      if (!q || !treeRoot) { results.innerHTML = '<div class="search-no-result">キーワードを入力してください</div>'; return; }
+      const found = [];
+      function walk(node) {
+        if (node.kind === 'file' && node.name.toLowerCase().includes(q)) found.push(node);
+        if (node.children) node.children.forEach(walk);
+      }
+      treeRoot.children?.forEach(walk);
+      if (!found.length) { results.innerHTML = '<div class="search-no-result">見つかりませんでした</div>'; return; }
+      found.forEach(node => {
+        const item = document.createElement('div');
+        item.className = 'search-result-item';
+        item.innerHTML = `<span>📄</span><span>${node.name}</span>`;
+        item.addEventListener('click', () => { closeDialog(); selectFile(node); });
+        results.appendChild(item);
+      });
+    }
+    input.addEventListener('input', doSearch);
+    doSearch();
+  }
+
+  // ── 表示メニュー ──
+
+  // ファイルタイプフィルター
+  let showAllFiles = false;
+  document.getElementById('mi-pdf-only').addEventListener('click', () => {
+    closeAllMenus();
+    if (!showAllFiles) return; // already pdf-only
+    showAllFiles = false;
+    document.getElementById('mi-pdf-only').classList.add('checked');
+    document.getElementById('mi-all-files').classList.remove('checked');
+    // 再スキャンが必要 (scannedフラグをリセット)
+    function resetScanned(node) { node.scanned = false; node.children = null; if (node.children) node.children.forEach(resetScanned); }
+    if (treeRoot) { resetScanned(treeRoot); renderTreeList(); }
+  });
+  document.getElementById('mi-all-files').addEventListener('click', () => {
+    closeAllMenus();
+    if (showAllFiles) return; // already all
+    showAllFiles = true;
+    document.getElementById('mi-all-files').classList.add('checked');
+    document.getElementById('mi-pdf-only').classList.remove('checked');
+    function resetScanned(node) { node.scanned = false; node.children = null; }
+    if (treeRoot) { resetScanned(treeRoot); renderTreeList(); }
+  });
+
+  // サムネールサイズ
+  const sizeMap = { 'mi-size-sm': 80, 'mi-size-md': 120, 'mi-size-lg': 160, 'mi-size-xl': 200 };
+  Object.entries(sizeMap).forEach(([id, size]) => {
+    document.getElementById(id).addEventListener('click', () => {
+      closeAllMenus();
+      thumbSize = size;
+      document.getElementById('thumb-size-select').value = size;
+      // チェックマーク更新
+      Object.keys(sizeMap).forEach(k => document.getElementById(k).classList.remove('checked'));
+      document.getElementById(id).classList.add('checked');
+      if (folderMode && activeDirNode) loadDirView(activeDirNode);
+      else if (activeNode) selectFile(activeNode);
+    });
+  });
+
+  // 整列
+  function sortTreeChildren(node, compareFn) {
+    if (!node.children) return;
+    const dirs  = node.children.filter(c => c.kind === 'dir');
+    const files = node.children.filter(c => c.kind === 'file');
+    files.sort(compareFn);
+    node.children = [...dirs, ...files];
+    dirs.forEach(d => sortTreeChildren(d, compareFn));
+  }
+  document.getElementById('mi-sort-name-asc').addEventListener('click', () => {
+    closeAllMenus();
+    if (!treeRoot) return;
+    sortTreeChildren(treeRoot, (a, b) => a.name.localeCompare(b.name, 'ja'));
+    renderTreeList();
+    if (activeDirNode) loadDirView(activeDirNode);
+  });
+  document.getElementById('mi-sort-name-desc').addEventListener('click', () => {
+    closeAllMenus();
+    if (!treeRoot) return;
+    sortTreeChildren(treeRoot, (a, b) => b.name.localeCompare(a.name, 'ja'));
+    renderTreeList();
+    if (activeDirNode) loadDirView(activeDirNode);
+  });
+  document.getElementById('mi-sort-date-new').addEventListener('click', () => {
+    closeAllMenus();
+    if (!treeRoot) return;
+    sortTreeChildren(treeRoot, (a, b) => (b.lastModified || 0) - (a.lastModified || 0));
+    renderTreeList();
+    if (activeDirNode) loadDirView(activeDirNode);
+  });
+  document.getElementById('mi-sort-date-old').addEventListener('click', () => {
+    closeAllMenus();
+    if (!treeRoot) return;
+    sortTreeChildren(treeRoot, (a, b) => (a.lastModified || 0) - (b.lastModified || 0));
+    renderTreeList();
+    if (activeDirNode) loadDirView(activeDirNode);
+  });
+  document.getElementById('mi-sort-size-large').addEventListener('click', () => {
+    closeAllMenus();
+    if (!treeRoot) return;
+    sortTreeChildren(treeRoot, (a, b) => (b.fileSize || 0) - (a.fileSize || 0));
+    renderTreeList();
+    if (activeDirNode) loadDirView(activeDirNode);
+  });
+  document.getElementById('mi-sort-size-small').addEventListener('click', () => {
+    closeAllMenus();
+    if (!treeRoot) return;
+    sortTreeChildren(treeRoot, (a, b) => (a.fileSize || 0) - (b.fileSize || 0));
+    renderTreeList();
+    if (activeDirNode) loadDirView(activeDirNode);
+  });
+
+  // 最新の情報に更新
+  document.getElementById('mi-refresh').addEventListener('click', async () => {
+    closeAllMenus();
+    if (!treeRoot || !treeRoot.handle) {
+      if (activeDirNode) { await loadDirView(activeDirNode); return; }
+      return;
+    }
+    // ルートフォルダを再スキャン
+    function markUnscanned(node) {
+      node.scanned = false;
+      (node.children || []).filter(c => c.kind === 'dir').forEach(markUnscanned);
+    }
+    markUnscanned(treeRoot);
+    await scanDir(treeRoot);
+    countFiles(treeRoot);
+    renderTreeList();
+    if (activeDirNode) await loadDirView(activeDirNode);
+  });
+
+  // ── ヘルプメニュー ──
+
+  // 操作マニュアル
+  document.getElementById('mi-manual').addEventListener('click', () => {
+    closeAllMenus();
+    // ローカルのmanual.htmlがあれば開く、なければ内蔵ガイドを表示
+    const manualPath = './manual.html';
+    showDialog('操作マニュアル',
+      `<p>操作マニュアルを開こうとしています。</p>
+       <p style="margin-top:8px;"><a href="${manualPath}" target="_blank" style="color:#4a7cb8;">📖 manual.html を開く</a></p>
+       <hr style="margin:12px 0;border-color:#c8b890;">
+       <p style="font-size:11px;color:#6a5a40;"><b>基本操作：</b><br>
+       ・フォルダを開く → ワークスペースに登録<br>
+       ・左ツリーでフォルダクリック → 右ペインにPDF一覧<br>
+       ・サムネイルクリック → 全画面表示<br>
+       ・全画面中: ←→ でページ移動、H/C/E/S でツール切り替え<br>
+       ・注釈はハイライト・コメント・消しゴムで操作<br>
+       ・F5: 更新　F2: 名前変更　F3: 検索　Ctrl+P: 印刷</p>`);
+  });
+
+  // GitHub
+  document.getElementById('mi-github').addEventListener('click', () => {
+    closeAllMenus();
+    window.open('https://github.com/YueNull', '_blank');
+  });
+
+  // バージョン情報
+  document.getElementById('mi-version').addEventListener('click', () => {
+    closeAllMenus();
+    showDialog('バージョン情報',
+      `<div style="text-align:center;padding:8px 0;">
+         <div style="font-size:28px;margin-bottom:8px;">📄</div>
+         <div style="font-size:15px;font-weight:bold;margin-bottom:4px;">PDF Viewer</div>
+         <div style="font-size:12px;color:#6a5a40;">Version 1.0.0 (HTML Edition)</div>
+         <hr style="margin:12px 0;border-color:#c8b890;">
+         <div style="font-size:11px;color:#6a5a40;line-height:1.8;">
+           開発者: <a href="https://github.com/YueNull" target="_blank" style="color:#4a7cb8;">YueNull</a><br>
+           ライセンス: MIT<br>
+           エンジン: PDF.js 3.11.174<br>
+           動作環境: Chrome / Edge（File System Access API 必須）<br>
+           <br>
+           <b>アプリ版（予定）で対応する機能：</b><br>
+           スキャナ取り込み / PDF束ねる・ばらす<br>
+           プリンタ詳細設定 / ファイルの直接操作
+         </div>
+       </div>`);
+  });
+
+  // ── キーボードショートカット追加 ──
+  document.addEventListener('keydown', e => {
+    const inInput = e.target.matches('input, textarea, select');
+    if (inInput) return;
+    if (e.key === 'F2')  { e.preventDefault(); document.getElementById('mi-rename').click(); }
+    if (e.key === 'F3')  { e.preventDefault(); openSearchDialog(); }
+    if (e.key === 'F5')  { e.preventDefault(); document.getElementById('mi-refresh').click(); }
+    if (e.ctrlKey && e.key === 'i') { e.preventDefault(); document.getElementById('mi-prop').click(); }
+    if (e.ctrlKey && e.key === 'd') { e.preventDefault(); document.getElementById('mi-duplicate').click(); }
+    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); document.getElementById('mi-undo').click(); }
+    if (e.ctrlKey && e.key === 'y') { e.preventDefault(); document.getElementById('mi-redo').click(); }
+    if (e.ctrlKey && e.key === 'p' && modal.classList.contains('hidden')) { e.preventDefault(); document.getElementById('mi-print-menu').click(); }
+    if (e.key === 'Delete' && activeNode) { e.preventDefault(); document.getElementById('mi-delete').click(); }
   });
 
 // ── Python bridge（将来 pywebview 接入时由此替换）─────────────
@@ -1511,8 +3398,12 @@ async function bridge_printPDF(pdfPath, printerName, pages) {
     const printer  = printSelect.value;
     const rangeMode = document.querySelector('input[name="print-range"]:checked').value;
     let pages = 'all';
-    if (rangeMode === 'current') pages = String(modalPage);
-    if (rangeMode === 'custom')  pages = printRangeInput.value.trim();
+    if (rangeMode === 'current')  pages = String(modalPage);
+    if (rangeMode === 'custom')   pages = printRangeInput.value.trim();
+    if (rangeMode === 'selected') {
+      const sel = [...thumbGrid.querySelectorAll('.thumb-card.selected')].map(c => c.dataset.page);
+      pages = sel.length ? sel.join(',') : 'all';
+    }
     const pdfPath = modal._node?.path ?? '';
     await bridge_printPDF(pdfPath, printer, pages);
     printDialog.classList.add('hidden');

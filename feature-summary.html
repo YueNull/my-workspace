@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>PDF Viewer 機能一覧</title>
+<style>
+  body { font-family: Meiryo, 'Segoe UI', sans-serif; background: #f5f0e8; color: #2a2a2a; margin: 0; padding: 16px; }
+  h1 { font-size: 16px; margin-bottom: 4px; color: #3a2a10; }
+  .subtitle { font-size: 11px; color: #888; margin-bottom: 12px; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  button { padding: 5px 14px; border-radius: 4px; border: 1px solid #a09070; background: #fff; cursor: pointer; font-size: 12px; }
+  button.primary { background: #4a7cb8; color: #fff; border-color: #3a6ca8; font-weight: 600; }
+  button:hover { filter: brightness(1.08); }
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px; align-items: center; }
+  .dot { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.1); }
+  th { background: #4a7cb8; color: #fff; padding: 7px 10px; text-align: left; position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+  td { padding: 5px 10px; border-bottom: 1px solid #e0d8cc; vertical-align: top; }
+  tr:hover td { background: #faf5ee; }
+  .cat { font-weight: 600; color: #5a3a10; }
+  .html-yes  { background: #d4edda; color: #155724; border-radius: 3px; padding: 1px 8px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+  .html-part { background: #fff3cd; color: #856404; border-radius: 3px; padding: 1px 8px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+  .html-no   { background: #f8d7da; color: #721c24; border-radius: 3px; padding: 1px 8px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+  .app-yes   { background: #cce5ff; color: #004085; border-radius: 3px; padding: 1px 8px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+  .note { font-size: 10px; color: #888; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  select, input[type=text] { padding: 4px 8px; border: 1px solid #a09070; border-radius: 4px; font-size: 12px; background: #fff; }
+</style>
+</head>
+<body>
+<h1>📋 PDF Viewer — 機能一覧・実装状況サマリー</h1>
+<p class="subtitle">更新日: 2026-04-06　|　HTML版 + App化後の全機能対照表</p>
+
+<div class="toolbar">
+  <button class="primary" onclick="downloadCSV()">📥 Excelファイルとしてダウンロード (.csv)</button>
+  <button onclick="window.print()">🖨 印刷</button>
+  <div class="legend">
+    <span class="dot" style="background:#d4edda;border:1px solid #c3e6cb;"></span><span>HTML実装済み</span>
+    <span class="dot" style="background:#fff3cd;border:1px solid #ffc107;"></span><span>HTML部分対応</span>
+    <span class="dot" style="background:#f8d7da;border:1px solid #f5c6cb;"></span><span>HTML不可</span>
+    <span class="dot" style="background:#cce5ff;border:1px solid #b8daff;"></span><span>App化で実現</span>
+  </div>
+</div>
+
+<div class="filter-row">
+  <select id="filter-cat" onchange="applyFilter()">
+    <option value="">全カテゴリ</option>
+  </select>
+  <select id="filter-html" onchange="applyFilter()">
+    <option value="">HTML実装状況（全て）</option>
+    <option value="✅">✅ 実装済み</option>
+    <option value="⚠️">⚠️ 部分対応</option>
+    <option value="❌">❌ 不可</option>
+  </select>
+  <input type="text" id="filter-text" placeholder="キーワード検索..." oninput="applyFilter()" style="min-width:200px;">
+</div>
+
+<table id="main-table">
+<thead>
+<tr>
+  <th>#</th>
+  <th>カテゴリ</th>
+  <th>機能名</th>
+  <th>詳細</th>
+  <th>HTML版</th>
+  <th>App版</th>
+  <th>備考・実装方針</th>
+</tr>
+</thead>
+<tbody id="table-body">
+</tbody>
+</table>
+
+<script>
+const DATA = [
+  // フォルダ管理
+  ["フォルダ管理","フォルダを開く","showDirectoryPicker でフォルダ選択","✅","✅","Chrome/Edge のみ対応"],
+  ["フォルダ管理","サブフォルダ再帰スキャン","フォルダ内全サブフォルダを一括スキャン","✅","✅",""],
+  ["フォルダ管理","ワークスペース登録","IndexedDB に複数フォルダを登録・管理","✅","✅",""],
+  ["フォルダ管理","前回フォルダ復元","起動時に前回フォルダを復元バナーで提示","✅","✅",""],
+  ["フォルダ管理","フォルダカラー設定","右クリックで23色からフォルダ色を設定","✅","✅","localStorage永続化"],
+  ["フォルダ管理","フォルダタグ","右クリックでタグ追加・タグフィルタリング","✅","✅","同一階層のみ有効"],
+  // ファイル管理
+  ["ファイル管理","PDF個別追加","ファイル選択ダイアログでPDFを追加","✅","✅",""],
+  ["ファイル管理","ドラッグ＆ドロップ追加","PDFをウィンドウにドロップして追加","✅","✅",""],
+  ["ファイル管理","インラインリネーム","サイドバーでファイル名をダブルクリック編集","✅","✅","実ファイル名は変更不可（仮想リネーム）"],
+  ["ファイル管理","実ファイル名変更","OSのファイルシステムを直接リネーム","❌","✅","Python: os.rename()"],
+  ["ファイル管理","実ファイル削除・移動","OSファイルの削除・移動操作","❌","✅","Python: os.remove(), shutil.move()"],
+  ["ファイル管理","ファイル種別アイコン","拡張子に応じた絵文字アイコン表示","✅","✅",""],
+  ["ファイル管理","ファイルプロパティ表示","右クリックでファイルサイズ・更新日時等を表示","✅","✅",""],
+  ["ファイル管理","ファイルソート","名前順/更新日時順/サイズ順","✅","✅",""],
+  ["ファイル管理","ファイル検索","ファイル名キーワード絞り込み","✅","✅",""],
+  ["ファイル管理","すべてのファイル表示","PDF以外も含む全ファイル表示切替","✅","✅",""],
+  // PDF表示
+  ["PDF表示","サムネイルグリッド表示","全ページをサムネイル一覧表示","✅","✅",""],
+  ["PDF表示","サムネイルサイズ変更","小(80)/中(120)/大(160)/特大(200)px","✅","✅",""],
+  ["PDF表示","全ページ連続表示(フォルダモード)","フォルダ内全PDFを縦連続表示","✅","✅",""],
+  ["PDF表示","全画面モーダル表示","ページをフルスクリーン表示","✅","✅",""],
+  ["PDF表示","ページナビゲーション","最初/前/次/最後 ボタン＋ページ番号入力","✅","✅",""],
+  ["PDF表示","ズームイン・アウト","0.5x〜3x のズームステップ切替","✅","✅",""],
+  ["PDF表示","ページ回転","90°/180°/270° 回転・localStorage永続化","✅","✅",""],
+  ["PDF表示","グローバルページジャンプ","フォルダモードで全体ページ番号でジャンプ","✅","✅",""],
+  // サムネイル選択
+  ["サムネイル選択","シングルクリック選択","クリックでサムネイルを選択","✅","✅",""],
+  ["サムネイル選択","ダブルクリックで全画面表示","ダブルクリックでモーダルを開く","✅","✅",""],
+  ["サムネイル選択","Ctrl+クリック複数選択","Ctrlを押しながらクリックで追加選択","✅","✅",""],
+  ["サムネイル選択","Shift+クリック範囲選択","Shiftを押しながらクリックで連続範囲選択","✅","✅",""],
+  ["サムネイル選択","空白クリックで選択解除","グリッド空白部分クリックで全選択解除","✅","✅",""],
+  // 注釈
+  ["注釈","ハイライト","ドラッグで矩形ハイライト描画 (5色)","✅","✅",""],
+  ["注釈","コメントピン","クリックでコメントピン配置・テキスト入力","✅","✅","クリックでバブル表示"],
+  ["注釈","付箋","クリックで付箋配置・ドラッグ移動・リサイズ","✅","✅",""],
+  ["注釈","消しゴム","クリックで個別注釈削除","✅","✅",""],
+  ["注釈","ページ消去","当該ページ全注釈を一括削除","✅","✅",""],
+  ["注釈","Undo/Redo","注釈操作の取消・やり直し（30件）","⚠️","✅","現在スナップショット未呼び出しのため要修正"],
+  ["注釈","注釈永続化","localStorage にJSON形式で保存","✅","✅",""],
+  ["注釈","PDFへの注釈埋め込み","PDF本体に注釈を書き込んで保存","❌","✅","Python: pypdf でAnnotationオブジェクト書き込み"],
+  // 印刷
+  ["印刷","印刷設定ダイアログ","プリンター選択・ページ範囲指定","⚠️","✅","ブラウザ版はプリンター名指定不可"],
+  ["印刷","選択ページ印刷","選択したサムネイルのみを印刷","⚠️","✅","ブラウザ版は window.print() 経由"],
+  ["印刷","指定プリンターで印刷","特定プリンターを直接指定","❌","✅","Python: win32print + win32api"],
+  ["印刷","Brother HL-J7010CDW 連携","専用プリンター直接印刷","❌","✅","Python/SumatraPDF CLI"],
+  // スキャン
+  ["スキャン","スキャナ選択・スキャン開始","TWAIN API 経由でスキャナ操作","❌","✅","Python: twain モジュール (RICOH fi-7700)"],
+  // PDF操作
+  ["PDF操作","PDFを束ねる","複数PDFを結合して1ファイルに","❌","✅","Python: pypdf.PdfWriter"],
+  ["PDF操作","PDFをばらす","PDFをページ単位に分割","❌","✅","Python: pypdf.PdfReader + PdfWriter"],
+  ["PDF操作","PDF間ドラッグ移動","異なるPDF間でページをD&D で移動・並び替え","❌","✅","App化時に実装予定 (Features.md §G)"],
+  ["PDF操作","上書き保存","編集結果をPDFファイルに保存","❌","✅","Python: pypdf.PdfWriter.write()"],
+  // メニュー
+  ["メニュー","ファイルメニュー","取り込み・保存・名前変更・プロパティ・印刷","✅","✅",""],
+  ["メニュー","編集メニュー","Undo/Redo・切り取り・コピー・複製・回転・検索","⚠️","✅","Cut/Pasteは仮想のみ"],
+  ["メニュー","表示メニュー","サムネサイズ・整列・更新・ファイルタイプ切替","✅","✅",""],
+  ["メニュー","ヘルプメニュー","マニュアル・GitHub・バージョン情報","✅","✅",""],
+  // キーボード
+  ["キーボード","ページ移動 ←→","モーダル内でページ移動","✅","✅",""],
+  ["キーボード","ズーム Ctrl±","モーダル内でズーム操作","✅","✅",""],
+  ["キーボード","ツール切替 H/C/E/S/N","ハイライト/コメント/消しゴム/選択/付箋","✅","✅",""],
+  ["キーボード","F2 名前変更","選択ファイルをリネーム","✅","✅",""],
+  ["キーボード","F3 検索","ファイル名検索を開く","✅","✅",""],
+  ["キーボード","F5 更新","フォルダ再スキャン","✅","✅",""],
+  ["キーボード","Ctrl+Z/Y","Undo/Redo","✅","✅",""],
+  ["キーボード","Ctrl+P","印刷","✅","✅",""],
+];
+
+const EMOJI = { "✅": "html-yes", "⚠️": "html-part", "❌": "html-no" };
+
+function buildTable(rows) {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  let n = 1;
+  const cats = new Set();
+  rows.forEach(r => cats.add(r[0]));
+  // Populate filter
+  const sel = document.getElementById('filter-cat');
+  if (sel.options.length <= 1) {
+    [...cats].forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+  }
+  rows.forEach(([cat, name, detail, html, app, note]) => {
+    const tr = document.createElement('tr');
+    const appClass = (html === "❌") ? "app-yes" : "html-yes";
+    tr.innerHTML = `
+      <td style="color:#aaa;font-size:10px;">${n++}</td>
+      <td class="cat">${cat}</td>
+      <td><b>${name}</b></td>
+      <td>${detail}</td>
+      <td><span class="${EMOJI[html] || 'html-yes'}">${html} ${html==="✅"?"実装済み":html==="⚠️"?"部分対応":"HTML不可"}</span></td>
+      <td><span class="${appClass}">${app} ${app==="✅"?"対応":"—"}</span></td>
+      <td class="note">${note}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function applyFilter() {
+  const cat = document.getElementById('filter-cat').value;
+  const html = document.getElementById('filter-html').value;
+  const text = document.getElementById('filter-text').value.toLowerCase();
+  const filtered = DATA.filter(r => {
+    if (cat && r[0] !== cat) return false;
+    if (html && r[3] !== html) return false;
+    if (text && !r.join(' ').toLowerCase().includes(text)) return false;
+    return true;
+  });
+  buildTable(filtered);
+}
+
+function downloadCSV() {
+  const BOM = '\uFEFF';
+  const header = ['#','カテゴリ','機能名','詳細','HTML版','App版','備考'];
+  const rows = DATA.map((r, i) => [i+1, ...r]);
+  const csv = BOM + [header, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'PDF_Viewer_機能一覧.csv';
+  a.click();
+}
+
+buildTable(DATA);
+</script>
+</body>
+</html>
