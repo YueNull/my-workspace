@@ -22,3 +22,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 全画面表示: `openModal` → `renderModalPage`（PDF.js canvas レンダリング）
 - 注釈座標は 0〜1 の比率で localStorage 保存（キー: `pdf_annotations`）
 - 前回フォルダハンドルは IndexedDB `pdf-viewer-db` に保存
+
+## 必读＆遵守
+
+1：当我提到的功能实现和工具调用，HTML语言暂时无法实现时，也要留下memo，写入对应的Features.md和Tools.md文档内。
+   以防之后用其他语言实现App化时，忘记需要实现的模块
+
+2：当功能和工具有所调整后，记得在feature-summary.html里面进行汇总调整

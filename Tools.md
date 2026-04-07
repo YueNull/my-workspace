@@ -143,6 +143,38 @@ sm.destroy()
 
 ---
 
+---
+
+### AI モデル連携（Features.md § H 参照）
+
+| ツール | 用途 | インストール |
+|--------|------|------------|
+| **anthropic** | Claude API（オンライン） | `pip install anthropic` |
+| **openai** | GPT / Ollama / LM Studio 共通クライアント | `pip install openai` |
+| **google-generativeai** | Gemini API（オンライン） | `pip install google-generativeai` |
+| **Ollama** | ローカルモデル実行ランタイム（Qwen, DeepSeek, Gemma, Llama, GLM 等） | [ollama.com](https://ollama.com) からインストール |
+| **LM Studio** | ローカルモデル GUI + OpenAI互換サーバー | [lmstudio.ai](https://lmstudio.ai) |
+| **pymupdf (fitz)** | PDF → テキスト抽出（AI コンテキスト用） | `pip install pymupdf` |
+
+**ローカルモデル接続先：**
+- Ollama: `http://localhost:11434/v1`（OpenAI 互換）
+- LM Studio: `http://localhost:1234/v1`（OpenAI 互換）
+
+---
+
+### OCR ツール（Features.md § I 参照）
+
+| ツール | 日本語精度 | インストール | 備考 |
+|--------|-----------|------------|------|
+| **PaddleOCR** | ★★★★★ | `pip install paddlepaddle paddleocr` | 縦書き対応・最推奨 |
+| **EasyOCR** | ★★★★☆ | `pip install easyocr` | 簡単導入 |
+| **Tesseract 5** | ★★★☆☆ | `pip install pytesseract` + Tesseract バイナリ | `jpn` / `jpn_vert` データ必要 |
+| **manga-ocr** | ★★★★★ | `pip install manga-ocr` | 縦書き・漫画特化 |
+| **docTR** | ★★★☆☆ | `pip install python-doctr` | TF/PyTorch 対応 |
+| **Pillow** | — | `pip install Pillow` | 画像前処理共通 |
+
+---
+
 ## 3. 環境要件まとめ
 
 | 環境 | 要件 |
@@ -151,3 +183,5 @@ sm.destroy()
 | **Python 版（将来）** | Python 3.10+（`str \| None` 型ヒント使用） |
 | **プリンター** | Windows 専用。`pywin32` または SumatraPDF exe が必要 |
 | **スキャナー** | Windows 専用。PaperStream IP TWAIN ドライバーと同ビット数の Python が必要 |
+| **AI 連携** | API キーまたはローカル Ollama / LM Studio 起動が必要 |
+| **OCR** | PaddleOCR 推奨（GPU あれば高速）。Tesseract は CPU のみで動作 |

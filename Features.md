@@ -350,3 +350,126 @@ def merge_pages(page_list, output_path):
 - サムネイルカードを他 PDF のサムネイルグリッドへドラッグ
 - ドロップ位置にページを挿入（プレビューラインで位置を示す）
 - 「保存」ボタンで新規 PDF として書き出し or 元ファイルに上書き
+
+---
+
+### H. AI モデル連携（PDF 内容のチャット質問）
+
+ブラウザ HTML 単体では API キー管理・CORS・セキュリティの観点から実用的な実装が困難。Python アプリ化推奨。
+
+**対応モデル方針：**
+
+| 種別 | サービス / モデル | 接続方法 |
+|------|-----------------|---------|
+| オンライン | **Claude** (Anthropic) | API キー → `anthropic` SDK |
+| オンライン | **GPT-4o** (OpenAI) | API キー → `openai` SDK |
+| オンライン | **Gemini** (Google) | API キー → `google-generativeai` SDK |
+| ローカル | **Ollama** (Gemma, Qwen, DeepSeek, Llama, GLM 等) | `http://localhost:11434/api/chat` (OpenAI互換) |
+| ローカル | **LM Studio** | `http://localhost:1234/v1/chat/completions` (OpenAI互換) |
+
+**Python 実装方針：**
+
+```python
+# ── ローカルモデル（Ollama / LM Studio は共通 OpenAI 互換エンドポイント）
+from openai import OpenAI
+
+# Ollama の場合
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+# LM Studio の場合
+# client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+
+response = client.chat.completions.create(
+    model="qwen3:latest",   # ollama pull qwen3 などでダウンロード
+    messages=[
+        {"role": "system", "content": "以下のPDF内容について質問に答えてください:\n" + pdf_text},
+        {"role": "user",   "content": user_question},
+    ]
+)
+print(response.choices[0].message.content)
+
+# ── オンライン Claude（Anthropic SDK）
+import anthropic
+client = anthropic.Anthropic(api_key="sk-ant-...")
+msg = client.messages.create(
+    model="claude-opus-4-6",
+    max_tokens=2048,
+    messages=[{"role":"user","content": pdf_text + "\n\n" + user_question}]
+)
+print(msg.content[0].text)
+```
+
+**PDF テキスト抽出（Python）：**
+```python
+import fitz  # pymupdf
+doc = fitz.open("file.pdf")
+pdf_text = "\n".join(page.get_text() for page in doc)
+```
+
+**UI 方針（App化時）：**
+- サイドパネルにモデル選択ドロップダウン（オンライン/ローカル切替）
+- API キーは設定画面で入力・アプリデータフォルダに暗号化保存
+- Ollama / LM Studio はエンドポイント URL を設定画面でカスタマイズ可能
+- 現在開いている PDF ページのテキストをコンテキストとしてチャットに自動挿入
+
+---
+
+### I. OCR 連携（画像 PDF・スキャン文書のテキスト認識）
+
+ブラウザでは Wasm ベースの Tesseract.js が使用可能だが、日本語精度が低いため Python + 専用 OCR エンジン推奨。
+
+**日本語対応 OCR エンジン比較：**
+
+| エンジン | 日本語精度 | ライセンス | 備考 |
+|---------|-----------|-----------|------|
+| **PaddleOCR** | ★★★★★ | Apache 2.0 | 縦書き対応・GPU加速・最推奨 |
+| **EasyOCR** | ★★★★☆ | Apache 2.0 | 導入簡単・GPU省メモリ |
+| **Tesseract 5** | ★★★☆☆ | Apache 2.0 | 軽量・横書き向き。`jpn` + `jpn_vert` データが必要 |
+| **manga-ocr** | ★★★★★ | MIT | 日本語漫画・縦書き特化（学術論文にも有効） |
+| **docTR** | ★★★☆☆ | Apache 2.0 | TensorFlow/PyTorch 両対応 |
+
+**Python 実装方針（PaddleOCR）：**
+
+```python
+# pip install paddlepaddle paddleocr pymupdf Pillow
+from paddleocr import PaddleOCR
+import fitz, numpy as np
+from PIL import Image
+
+ocr = PaddleOCR(use_angle_cls=True, lang='japan')
+
+doc = fitz.open("scanned.pdf")
+results_all = []
+for page in doc:
+    mat = fitz.Matrix(2, 2)  # 2x 解像度
+    pix = page.get_pixmap(matrix=mat)
+    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    result = ocr.ocr(np.array(img), cls=True)
+    results_all.append(result)
+
+# 認識テキスト取得
+for page_result in results_all:
+    for line in page_result:
+        print(line[1][0])  # テキスト文字列
+```
+
+**Python 実装方針（manga-ocr / 縦書き文書向け）：**
+
+```python
+# pip install manga-ocr Pillow pymupdf
+from manga_ocr import MangaOcr
+import fitz
+from PIL import Image
+
+mocr = MangaOcr()
+doc = fitz.open("vertical_text.pdf")
+for page in doc:
+    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    text = mocr(img)
+    print(text)
+```
+
+**UI 方針（App化時）：**
+- 「OCR 実行」ボタンでページ画像を選択したエンジンに渡す
+- 認識結果をテキストレイヤーとして PDF に埋め込み（テキスト選択・コピー可能にする）
+- OCR エンジンは設定画面でドロップダウン選択

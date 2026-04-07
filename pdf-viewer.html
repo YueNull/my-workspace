@@ -662,32 +662,32 @@
     .comment-popup-btns button { padding: 3px 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 11px; cursor: pointer; }
     .comment-ok { background: #4a7cb8; color: #fff; border-color: #3a6ca8 !important; }
 
-    /* コメントピン（スピーチバブル風） */
+    /* コメントピン（非表示モード：小さな丸アイコン） */
     .comment-pin {
       position: absolute;
-      width: 26px;
-      height: 26px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.35);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
       transition: transform 0.12s, box-shadow 0.12s;
       z-index: 15;
-      font-size: 13px;
+      font-size: 11px;
       line-height: 1;
       user-select: none;
     }
-    .comment-pin:hover { transform: scale(1.2); box-shadow: 0 2px 10px rgba(0,0,0,0.45); }
+    .comment-pin:hover { transform: scale(1.2); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
     .comment-pin-popup {
       position: absolute;
       background: #fff;
       border: 1.5px solid #d1d5db;
       border-radius: 8px;
       padding: 8px 12px;
-      min-width: 140px;
-      max-width: 220px;
+      width: max-content;
+      max-width: 260px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.15);
       font-size: 12px;
       line-height: 1.55;
@@ -698,6 +698,76 @@
       pointer-events: none;
     }
     .comment-pin-popup.visible { display: block; }
+
+    /* コメントインライン表示（デフォルト・Edgeスタイル） */
+    .comment-inline {
+      position: absolute;
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+      z-index: 15;
+      cursor: default;
+      user-select: none;
+      max-width: 220px;
+    }
+    .comment-inline-marker {
+      width: 3px;
+      min-height: 14px;
+      align-self: stretch;
+      border-radius: 2px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .comment-inline-text {
+      font-size: 12px;
+      line-height: 1.45;
+      color: #06b6d4;  /* デフォルト水色、JSで上書き */
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: transparent;
+    }
+
+    /* コメント右クリックメニュー */
+    .comment-ctx-menu {
+      position: fixed;
+      background: #f5ede0;
+      border: 1px solid #a09070;
+      box-shadow: 3px 4px 12px rgba(0,0,0,0.28);
+      border-radius: 3px;
+      padding: 3px 0;
+      z-index: 1000;
+      min-width: 170px;
+    }
+    .comment-ctx-item {
+      padding: 5px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      color: #2a2a2a;
+    }
+    .comment-ctx-item:hover { background: #4a7cb8; color: #fff; }
+    .comment-ctx-label {
+      padding: 4px 14px 2px;
+      font-size: 11px;
+      color: #7a6a50;
+      cursor: default;
+    }
+    .comment-ctx-sep { height: 1px; background: #c8b890; margin: 3px 6px; }
+    .comment-ctx-colors {
+      display: flex;
+      gap: 5px;
+      padding: 4px 14px 6px;
+    }
+    .comment-ctx-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1.5px solid rgba(0,0,0,0.18);
+      transition: transform 0.1s;
+    }
+    .comment-ctx-color:hover { transform: scale(1.25); }
+    .comment-ctx-color.selected { outline: 2px solid #333; outline-offset: 1px; }
 
     /* 付箋 */
     .sticky-note {
@@ -1532,7 +1602,8 @@
   // 注釈ツール状態
   let annoTool     = 'select';   // 'select' | 'highlight' | 'comment' | 'eraser' | 'sticky'
   let annoColor    = '#fef08a';  // ハイライト色
-  let commentColor = '#f59e0b';  // コメント色
+  let commentColor     = '#f59e0b';  // コメントマーカー色
+  let commentFontColor = '#06b6d4';  // コメント文字色（デフォルト: 水色。最後に使った色を記憶）
   let stickyColor  = '#fef08a';  // 付箋色
   let drawing   = false;
   let drawStart = null;
@@ -2355,62 +2426,207 @@
     activeCommentViewPin = null;
   }
 
+  // コメント右クリックメニュー
+  let activeCtxMenu = null;
+  function closeCommentCtxMenu() {
+    if (activeCtxMenu) { activeCtxMenu.remove(); activeCtxMenu = null; }
+  }
+
+  function showCommentCtxMenu(e, annoIdx, anno) {
+    closeCommentCtxMenu();
+    closeCommentViewPopup();
+    const node = modal._node;
+    const MARKER_COLORS = ['#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#ec4899'];
+    const FONT_COLORS   = ['#06b6d4','#1a1a1a','#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899'];
+
+    const menu = document.createElement('div');
+    menu.className = 'comment-ctx-menu';
+
+    // 削除
+    const delItem = document.createElement('div');
+    delItem.className = 'comment-ctx-item';
+    delItem.textContent = '🗑 削除';
+    delItem.onclick = () => {
+      const allAnnos = getAnnotations(node.name, modalPage);
+      allAnnos.splice(annoIdx, 1);
+      setAnnotations(node.name, modalPage, allAnnos);
+      redrawAnnoOverlay();
+      refreshThumb(node, modalPage);
+      closeCommentCtxMenu();
+    };
+
+    // 非表示トグル（アイコン化 ↔ テキスト表示）
+    const hideItem = document.createElement('div');
+    hideItem.className = 'comment-ctx-item';
+    hideItem.textContent = anno.hidden ? '👁 テキスト表示に戻す' : '🫥 アイコンに変更';
+    hideItem.onclick = () => {
+      const allAnnos = getAnnotations(node.name, modalPage);
+      allAnnos[annoIdx].hidden = !allAnnos[annoIdx].hidden;
+      setAnnotations(node.name, modalPage, allAnnos);
+      redrawAnnoOverlay();
+      closeCommentCtxMenu();
+    };
+
+    const sep = document.createElement('div');
+    sep.className = 'comment-ctx-sep';
+
+    // マーカー色
+    const markerLabel = document.createElement('div');
+    markerLabel.className = 'comment-ctx-label';
+    markerLabel.textContent = 'マーカー色:';
+
+    const markerRow = document.createElement('div');
+    markerRow.className = 'comment-ctx-colors';
+    MARKER_COLORS.forEach(c => {
+      const dot = document.createElement('div');
+      dot.className = 'comment-ctx-color' + (anno.color === c ? ' selected' : '');
+      dot.style.background = c;
+      dot.title = c;
+      dot.onclick = () => {
+        const allAnnos = getAnnotations(node.name, modalPage);
+        allAnnos[annoIdx].color = c;
+        setAnnotations(node.name, modalPage, allAnnos);
+        redrawAnnoOverlay();
+        closeCommentCtxMenu();
+      };
+      markerRow.appendChild(dot);
+    });
+
+    const sep2 = document.createElement('div');
+    sep2.className = 'comment-ctx-sep';
+
+    // 文字色
+    const fontColorLabel = document.createElement('div');
+    fontColorLabel.className = 'comment-ctx-label';
+    fontColorLabel.textContent = '文字色:';
+
+    const fontColorRow = document.createElement('div');
+    fontColorRow.className = 'comment-ctx-colors';
+    FONT_COLORS.forEach(c => {
+      const dot = document.createElement('div');
+      const curFont = anno.fontColor || '#06b6d4';
+      dot.className = 'comment-ctx-color' + (curFont === c ? ' selected' : '');
+      dot.style.background = c;
+      // 黒は枠なしだと見えないので白枠を追加
+      if (c === '#1a1a1a') dot.style.border = '1.5px solid #999';
+      dot.title = c;
+      dot.onclick = () => {
+        const allAnnos = getAnnotations(node.name, modalPage);
+        allAnnos[annoIdx].fontColor = c;
+        commentFontColor = c;   // 次回コメントに引き継ぐ
+        setAnnotations(node.name, modalPage, allAnnos);
+        redrawAnnoOverlay();
+        closeCommentCtxMenu();
+      };
+      fontColorRow.appendChild(dot);
+    });
+
+    menu.appendChild(delItem);
+    menu.appendChild(hideItem);
+    menu.appendChild(sep);
+    menu.appendChild(markerLabel);
+    menu.appendChild(markerRow);
+    menu.appendChild(sep2);
+    menu.appendChild(fontColorLabel);
+    menu.appendChild(fontColorRow);
+
+    // 画面端をはみ出さないよう配置
+    document.body.appendChild(menu);
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    let mx = e.clientX, my = e.clientY;
+    if (mx + mw > window.innerWidth)  mx = window.innerWidth  - mw - 4;
+    if (my + mh > window.innerHeight) my = window.innerHeight - mh - 4;
+    menu.style.left = mx + 'px';
+    menu.style.top  = my + 'px';
+    activeCtxMenu = menu;
+
+    setTimeout(() => {
+      document.addEventListener('click', closeCommentCtxMenu, { once: true });
+      document.addEventListener('contextmenu', closeCommentCtxMenu, { once: true });
+    }, 0);
+  }
+
   function updateCommentPins() {
-    canvasWrap.querySelectorAll('.comment-pin').forEach(el => el.remove());
+    canvasWrap.querySelectorAll('.comment-pin, .comment-inline').forEach(el => el.remove());
     closeCommentViewPopup();
     const node = modal._node;
     if (!node) return;
     const annos = getAnnotations(node.name, modalPage);
     const W = annoCanvas.width, H = annoCanvas.height;
-    annos.filter(a => a.type === 'comment').forEach((a, i) => {
-      const pin = document.createElement('div');
-      pin.className = 'comment-pin';
-      pin.style.background = a.color || '#f59e0b';
-      pin.style.color = '#fff';
-      pin.textContent = '💬';
-      pin.style.fontSize = '13px';
-      pin.style.left = (a.x * W - 13) + 'px';
-      pin.style.top  = (a.y * H - 13) + 'px';
-      pin.dataset.idx = i;
-      pin.title = '右クリック: 削除';
 
-      // クリックでポップアップ表示
-      pin.addEventListener('click', e => {
-        e.stopPropagation();
-        const vp = document.getElementById('comment-view-popup');
-        if (activeCommentViewPin === pin && vp.classList.contains('visible')) {
-          closeCommentViewPopup();
-          return;
-        }
-        activeCommentViewPin = pin;
-        vp.textContent = a.text;
-        // ピンの右側に表示、画面端を考慮
-        const px = a.x * W + 16;
-        const py = a.y * H - 8;
-        vp.style.left = px + 'px';
-        vp.style.top  = py + 'px';
-        vp.classList.add('visible');
-      });
+    // コメントのみ、元インデックスを保持
+    annos.forEach((a, i) => {
+      if (a.type !== 'comment') return;
 
-      // 右クリックで削除
-      pin.addEventListener('contextmenu', e => {
-        e.preventDefault();
-        const allAnnos = getAnnotations(node.name, modalPage);
-        const commentAnnos = allAnnos.filter(a => a.type === 'comment');
-        const target = commentAnnos[+pin.dataset.idx];
-        const newList = allAnnos.filter(a => a !== target);
-        setAnnotations(node.name, modalPage, newList);
-        redrawAnnoOverlay();
-        refreshThumb(node, modalPage);
-      });
+      if (a.hidden) {
+        // ── 非表示モード: 小さな丸アイコン ──
+        const pin = document.createElement('div');
+        pin.className = 'comment-pin';
+        pin.style.background = a.color || '#f59e0b';
+        pin.style.color = '#fff';
+        pin.textContent = '💬';
+        pin.style.left = (a.x * W - 10) + 'px';
+        pin.style.top  = (a.y * H - 10) + 'px';
+        pin.dataset.annoIdx = i;
+        pin.title = 'クリック: テキスト表示 / 右クリック: メニュー';
 
-      canvasWrap.appendChild(pin);
+        // クリックでポップアップ表示
+        pin.addEventListener('click', ev => {
+          ev.stopPropagation();
+          const vp = document.getElementById('comment-view-popup');
+          if (activeCommentViewPin === pin && vp.classList.contains('visible')) {
+            closeCommentViewPopup(); return;
+          }
+          activeCommentViewPin = pin;
+          vp.textContent = a.text;
+          vp.style.color = a.fontColor || '#06b6d4';
+          const px = a.x * W + 14;
+          const py = a.y * H - 8;
+          vp.style.left = px + 'px';
+          vp.style.top  = py + 'px';
+          vp.classList.add('visible');
+        });
+
+        pin.addEventListener('contextmenu', ev => {
+          ev.preventDefault(); ev.stopPropagation();
+          showCommentCtxMenu(ev, i, a);
+        });
+
+        canvasWrap.appendChild(pin);
+      } else {
+        // ── デフォルト: インライン テキスト表示（Edgeスタイル） ──
+        const el = document.createElement('div');
+        el.className = 'comment-inline';
+        el.title = '右クリック: メニュー';
+
+        const marker = document.createElement('div');
+        marker.className = 'comment-inline-marker';
+        marker.style.background = a.color || '#f59e0b';
+
+        const txt = document.createElement('div');
+        txt.className = 'comment-inline-text';
+        txt.textContent = a.text;
+        txt.style.color = a.fontColor || '#06b6d4';
+
+        el.appendChild(marker);
+        el.appendChild(txt);
+        el.style.left = (a.x * W) + 'px';
+        el.style.top  = (a.y * H) + 'px';
+
+        el.addEventListener('contextmenu', ev => {
+          ev.preventDefault(); ev.stopPropagation();
+          showCommentCtxMenu(ev, i, a);
+        });
+
+        canvasWrap.appendChild(el);
+      }
     });
   }
 
-  // キャンバス外クリックでコメントポップアップを閉じる
+  // キャンバス外クリックでポップアップ・メニューを閉じる
   canvasWrap.addEventListener('click', e => {
     if (!e.target.classList.contains('comment-pin')) closeCommentViewPopup();
+    closeCommentCtxMenu();
   });
 
   function updateModalBtns() {
@@ -2615,7 +2831,7 @@
       const node = modal._node;
       const W = annoCanvas.width, H = annoCanvas.height;
       const annos = getAnnotations(node.name, modalPage);
-      annos.push({ type:'comment', x: pendingCommentPos.x / W, y: pendingCommentPos.y / H, text, color: commentColor });
+      annos.push({ type:'comment', x: pendingCommentPos.x / W, y: pendingCommentPos.y / H, text, color: commentColor, fontColor: commentFontColor });
       setAnnotations(node.name, modalPage, annos);
       redrawAnnoOverlay();
       refreshThumb(node, modalPage);
