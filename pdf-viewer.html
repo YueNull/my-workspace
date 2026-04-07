@@ -170,6 +170,22 @@
     }
     .search-result-item:hover { background: #4a7cb8; color: #fff; }
     .search-no-result { color: #888; font-size: 11px; text-align: center; padding: 16px; }
+    /* 検索タブ */
+    .search-tabs { display: flex; gap: 0; margin-bottom: 8px; border-bottom: 2px solid #4a7cb8; }
+    .search-tab {
+      padding: 4px 14px;
+      border: 1px solid #c0b090;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      background: #e8d8c0;
+      font-size: 11px;
+      cursor: pointer;
+      color: #5a4a30;
+      user-select: none;
+    }
+    .search-tab:hover { background: #d8c8a8; }
+    .search-tab.active { background: #4a7cb8; color: #fff; border-color: #4a7cb8; font-weight: 600; }
+    .search-scope-label { font-size: 10px; color: #7a6a50; margin-bottom: 6px; padding: 2px 2px; }
 
     /* ── ツールバー ── */
     .toolbar {
@@ -295,6 +311,7 @@
     }
     .tree-node:hover { background: rgba(0,0,0,0.09); }
     .tree-node.active-file { background: #4a7cb8; color: #fff; border-left-color: #2a5c98; }
+    .tree-node.active-folder { outline: 1.5px dashed #4a7cb8; outline-offset: -1px; background: rgba(74,124,184,0.12); }
     .tree-node.loading-node { opacity: 0.5; pointer-events: none; }
     .tree-indent { display: inline-block; width: 14px; flex-shrink: 0; }
     .tree-toggle { width: 14px; text-align: center; font-size: 9px; color: #7a6a50; flex-shrink: 0; font-family: monospace; font-weight: bold; }
@@ -769,6 +786,12 @@
     .comment-ctx-color:hover { transform: scale(1.25); }
     .comment-ctx-color.selected { outline: 2px solid #333; outline-offset: 1px; }
 
+    /* 注釈選択状態（点線枠） */
+    .anno-selected {
+      outline: 2px dashed #2563eb !important;
+      outline-offset: 2px;
+    }
+
     /* 付箋 */
     .sticky-note {
       position: absolute;
@@ -882,7 +905,7 @@
       white-space: nowrap;
     }
     .ctx-item:hover { background: #0078d4; color: #fff; }
-    .ctx-item.disabled { color: #aaa; pointer-events: none; }
+    .ctx-item.disabled, .ctx-item-disabled { color: #aaa; pointer-events: none; cursor: default; }
     .ctx-shortcut { font-size: 10px; opacity: 0.6; }
     .ctx-item:hover .ctx-shortcut { opacity: 0.85; }
     .ctx-sep { height: 1px; background: #e0e0e0; margin: 3px 0; }
@@ -1262,14 +1285,31 @@
   </div>
 </div>
 
-<!-- 右クリックコンテキストメニュー -->
+<!-- 右クリックコンテキストメニュー（ファイル用） -->
 <div class="ctx-menu hidden" id="ctx-menu">
   <div class="ctx-item" id="ctx-open">📂 開く</div>
+  <div class="ctx-item" id="ctx-open-with">🖥 プログラムで開く(H)...</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-rename">✏️ 名前の変更 <span class="ctx-shortcut">F2</span></div>
   <div class="ctx-item" id="ctx-remove">🗑 ツリーから除去 <span class="ctx-shortcut">Del</span></div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-props">📋 プロパティ <span class="ctx-shortcut">Ctrl+I</span></div>
+</div>
+
+<!-- 右クリックコンテキストメニュー（フォルダ用） -->
+<div class="ctx-menu hidden" id="folder-ctx-menu">
+  <div class="ctx-item" id="fctx-search">🔍 フォルダ内を検索(S)</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item ctx-item-disabled" id="fctx-new-folder">📁 新規フォルダの作成(F)</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item ctx-item-disabled" id="fctx-copy">📋 コピー(C)</div>
+  <div class="ctx-item" id="fctx-delete">🗑 ツリーから除去(D)</div>
+  <div class="ctx-item" id="fctx-rename">✏️ 名前の変更(M)</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="fctx-color">🎨 カラー設定</div>
+  <div class="ctx-item" id="fctx-tag">🏷 タグ設定</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="fctx-props">📋 プロパティ(R)</div>
 </div>
 
 <script>
@@ -1408,6 +1448,13 @@
     ctxMenu.classList.add('hidden');
     if (ctxMenuNode) selectFile(ctxMenuNode);
   });
+  document.getElementById('ctx-open-with').addEventListener('click', () => {
+    ctxMenu.classList.add('hidden');
+    if (!ctxMenuNode) return;
+    const node = ctxMenuNode;
+    ctxMenuNode = null;
+    openFileWithDefault(node);
+  });
   document.getElementById('ctx-rename').addEventListener('click', () => {
     ctxMenu.classList.add('hidden');
     if (ctxMenuNode) { activeNode = ctxMenuNode; document.getElementById('mi-rename')?.click(); }
@@ -1425,15 +1472,26 @@
   function getFileIcon(name) {
     const ext = name.split('.').pop().toLowerCase();
     const map = {
+      // Office
       pdf: '📕', xlsx: '📗', xls: '📗', xlsm: '📗', csv: '📗',
       docx: '📘', doc: '📘', docm: '📘',
       pptx: '📙', ppt: '📙', pptm: '📙',
+      // テキスト
       txt: '📝', md: '📝', log: '📝',
-      jpg: '🖼', jpeg: '🖼', png: '🖼', gif: '🖼', bmp: '🖼', webp: '🖼',
-      zip: '🗜', rar: '🗜', '7z': '🗜',
-      mp4: '🎬', mov: '🎬', avi: '🎬',
-      mp3: '🎵', wav: '🎵',
-      html: '🌐', htm: '🌐', js: '📜', py: '📜',
+      // 画像
+      jpg: '🖼', jpeg: '🖼', png: '🖼', gif: '🖼', bmp: '🖼', webp: '🖼', tif: '🖼', tiff: '🖼',
+      // 圧縮
+      zip: '🗜', rar: '🗜', '7z': '🗜', gz: '🗜', tar: '🗜',
+      // 動画・音声
+      mp4: '🎬', mov: '🎬', avi: '🎬', mkv: '🎬',
+      mp3: '🎵', wav: '🎵', m4a: '🎵',
+      // Web・コード
+      html: '🌐', htm: '🌐', js: '📜', py: '📜', ts: '📜',
+      // 弥生会計・弥生給与（各バージョンのデータファイル）
+      kaikei: '🧮', yayoi: '🧮', kdk: '🧮', mfm: '🧮',
+      kyuyo: '🧾', kyuuyo: '🧾',
+      // 会計・業務系汎用
+      dat: '🗃', db: '🗃', mdb: '🗃', accdb: '🗃',
     };
     return map[ext] || '📄';
   }
@@ -1482,6 +1540,158 @@
     fcpPopup.style.top  = Math.min(e.clientY, H - ph) + 'px';
     fcpPopup.classList.add('visible');
     document.getElementById('fcp-tag-input').value = '';
+  }
+
+  /* ── フォルダ右クリックコンテキストメニュー ── */
+  let folderCtxNode = null;
+  const folderCtxMenu = document.getElementById('folder-ctx-menu');
+
+  function showFolderContextMenu(e, node) {
+    e.preventDefault();
+    e.stopPropagation();
+    folderCtxNode = node;
+    selectedDirNode = node;
+    renderTreeList();
+    const W = window.innerWidth, H = window.innerHeight;
+    const mw = 200, mh = 260;
+    folderCtxMenu.style.left = Math.min(e.clientX, W - mw) + 'px';
+    folderCtxMenu.style.top  = Math.min(e.clientY, H - mh) + 'px';
+    folderCtxMenu.classList.remove('hidden');
+  }
+
+  document.addEventListener('click', e => {
+    if (!folderCtxMenu.contains(e.target)) folderCtxMenu.classList.add('hidden');
+  });
+
+  document.getElementById('fctx-delete').addEventListener('click', () => {
+    folderCtxMenu.classList.add('hidden');
+    if (!folderCtxNode) return;
+    if (!confirm(`「${folderCtxNode.name}」をツリーから除去しますか？`)) return;
+    function removeNode(parent, target) {
+      if (!parent.children) return false;
+      const idx = parent.children.indexOf(target);
+      if (idx !== -1) { parent.children.splice(idx, 1); return true; }
+      return parent.children.some(c => c.kind === 'dir' && removeNode(c, target));
+    }
+    if (treeRoot) removeNode(treeRoot, folderCtxNode);
+    if (selectedDirNode === folderCtxNode) selectedDirNode = null;
+    if (activeDirNode === folderCtxNode) { activeDirNode = null; folderMode = false; }
+    countFiles(treeRoot);
+    renderTreeList();
+    folderCtxNode = null;
+  });
+
+  document.getElementById('fctx-rename').addEventListener('click', () => {
+    folderCtxMenu.classList.add('hidden');
+    if (!folderCtxNode) return;
+    const newName = prompt('新しいフォルダ名を入力してください:', folderCtxNode.name);
+    if (!newName || newName === folderCtxNode.name) return;
+    folderCtxNode.name = newName;
+    renderTreeList();
+    folderCtxNode = null;
+  });
+
+  document.getElementById('fctx-color').addEventListener('click', () => {
+    const node = folderCtxNode;
+    const mx = parseInt(folderCtxMenu.style.left) || 200;
+    const my = parseInt(folderCtxMenu.style.top)  || 150;
+    folderCtxMenu.classList.add('hidden');
+    folderCtxNode = null;
+    if (!node) return;
+    // documentのclickハンドラがpopupを閉じるのを避けるためsetTimeoutで遅延
+    setTimeout(() => {
+      showFolderColorPicker({ preventDefault:()=>{}, stopPropagation:()=>{}, clientX: mx, clientY: my }, node);
+    }, 10);
+  });
+
+  document.getElementById('fctx-tag').addEventListener('click', () => {
+    const node = folderCtxNode;
+    const mx = parseInt(folderCtxMenu.style.left) || 200;
+    const my = parseInt(folderCtxMenu.style.top)  || 150;
+    folderCtxMenu.classList.add('hidden');
+    folderCtxNode = null;
+    if (!node) return;
+    setTimeout(() => {
+      showFolderColorPicker({ preventDefault:()=>{}, stopPropagation:()=>{}, clientX: mx, clientY: my }, node);
+      setTimeout(() => document.getElementById('fcp-tag-input').focus(), 30);
+    }, 10);
+  });
+
+  document.getElementById('fctx-props').addEventListener('click', () => {
+    folderCtxMenu.classList.add('hidden');
+    if (!folderCtxNode) return;
+    const node = folderCtxNode;
+    folderCtxNode = null;
+
+    // ファイル数・サブフォルダ数・合計サイズを再帰集計
+    let fileCount = 0, subFolderCount = 0, totalSize = 0;
+    function collectStats(n) {
+      if (n.kind === 'file') { fileCount++; totalSize += n.fileSize || 0; }
+      else if (n.kind === 'dir') {
+        subFolderCount++;
+        if (n.children) n.children.forEach(collectStats);
+      }
+    }
+    if (node.children) node.children.forEach(collectStats);
+
+    const fmtSize = bytes => {
+      if (!bytes) return '—';
+      if (bytes >= 1073741824) return (bytes/1073741824).toFixed(1) + ' GB (' + bytes.toLocaleString('ja-JP') + ' バイト)';
+      if (bytes >= 1048576)    return (bytes/1048576).toFixed(1)    + ' MB (' + bytes.toLocaleString('ja-JP') + ' バイト)';
+      if (bytes >= 1024)       return (bytes/1024).toFixed(1)       + ' KB (' + bytes.toLocaleString('ja-JP') + ' バイト)';
+      return bytes + ' バイト';
+    };
+
+    const path = getNodePath(node);
+    const parentPath = path.includes('/') ? path.substring(0, path.lastIndexOf('/')) : '（ルートフォルダ）';
+
+    showDialog('📁 ' + node.name,
+      `<div style="display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #c8b890;">
+        <span style="font-size:36px;line-height:1;">📁</span>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#2a2a2a;">${node.name}</div>
+          <div style="font-size:11px;color:#888;margin-top:2px;">ファイル フォルダー</div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="color:#6a5a40;white-space:nowrap;padding:4px 8px 4px 0;vertical-align:top;width:110px;">種類</td><td style="padding:4px 0;">ファイル フォルダー</td></tr>
+        <tr><td style="color:#6a5a40;padding:4px 8px 4px 0;vertical-align:top;">場所</td><td style="padding:4px 0;font-size:11px;word-break:break-all;">${parentPath}</td></tr>
+        <tr><td colspan="2"><hr style="border:none;border-top:1px solid #c8b890;margin:6px 0;"></td></tr>
+        <tr><td style="color:#6a5a40;padding:4px 8px 4px 0;">サイズ</td><td style="padding:4px 0;">${totalSize ? fmtSize(totalSize) : '（未取得）'}</td></tr>
+        <tr><td style="color:#6a5a40;padding:4px 8px 4px 0;">内容</td><td style="padding:4px 0;">ファイル数: ${fileCount}、フォルダ数: ${subFolderCount}</td></tr>
+        <tr><td colspan="2"><hr style="border:none;border-top:1px solid #c8b890;margin:6px 0;"></td></tr>
+        <tr><td style="color:#6a5a40;padding:4px 8px 4px 0;">作成日時</td><td style="padding:4px 0;color:#aaa;font-size:11px;">（ブラウザ版では取得不可）</td></tr>
+        <tr><td colspan="2"><hr style="border:none;border-top:1px solid #c8b890;margin:6px 0;"></td></tr>
+        <tr><td style="color:#6a5a40;padding:4px 8px 4px 0;vertical-align:top;">属性</td><td style="padding:4px 0;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:default;">
+            <input type="checkbox" checked disabled style="cursor:default;"> 読み取り専用（フォルダ内のファイルのみ）(R)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:default;margin-top:4px;">
+            <input type="checkbox" disabled style="cursor:default;"> 隠しファイル(H)
+          </label>
+        </td></tr>
+      </table>`
+    );
+  });
+
+  document.getElementById('fctx-search').addEventListener('click', () => {
+    folderCtxMenu.classList.add('hidden');
+    const node = folderCtxNode;
+    folderCtxNode = null;
+    if (!node) return;
+    openSearchDialog(node);
+  });
+
+  /* ── ファイルをブラウザで開く（非PDF用）── */
+  async function openFileWithDefault(node) {
+    try {
+      const file = node._file ? node._file : await node.handle.getFile();
+      const url = URL.createObjectURL(file);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 15000);
+    } catch(e) {
+      alert('ファイルを開けませんでした:\n' + e.message);
+    }
   }
 
   /* ── フォルダタグ（localStorage）── */
@@ -1579,9 +1789,10 @@
   /* ══════════════════════════════════════════════════
      状態
   ══════════════════════════════════════════════════ */
-  let treeRoot      = null;
-  let activeNode    = null;
-  let activeDirNode = null;      // currently displayed folder in right pane
+  let treeRoot        = null;
+  let activeNode      = null;
+  let activeDirNode   = null;      // currently displayed folder in right pane
+  let selectedDirNode = null;      // single-clicked (visually selected) folder
   let bookmarks     = [];        // [{id, name, handle}]
   let activeWorkspaceId = null;  // currently open bookmark id
   let thumbSize  = 120;
@@ -1604,6 +1815,8 @@
   let annoColor    = '#fef08a';  // ハイライト色
   let commentColor     = '#f59e0b';  // コメントマーカー色
   let commentFontColor = '#06b6d4';  // コメント文字色（デフォルト: 水色。最後に使った色を記憶）
+  let selectedAnnos    = new Set();  // 選択中の注釈インデックス（カレントページ基準）
+  let didHighlightDraw = false;      // ハイライトドラッグ後のクリックイベントを無視するフラグ
   let stickyColor  = '#fef08a';  // 付箋色
   let drawing   = false;
   let drawStart = null;
@@ -2071,7 +2284,7 @@
       }
 
       const row = document.createElement('div');
-      row.className = 'tree-node' + (node === activeNode ? ' active-file' : '');
+      row.className = 'tree-node' + (node === activeNode ? ' active-file' : '') + (node.kind === 'dir' && node === selectedDirNode ? ' active-folder' : '');
 
       for (let i = 0; i < depth; i++) {
         const sp = document.createElement('span'); sp.className = 'tree-indent'; row.appendChild(sp);
@@ -2108,14 +2321,20 @@
           row.appendChild(chip);
         });
 
-        row.addEventListener('click', async () => {
+        // シングルクリック → 選択（点線枠でハイライト）
+        row.addEventListener('click', () => {
+          selectedDirNode = node;
+          renderTreeList();
+        });
+        // ダブルクリック → 展開＆フォルダビュー表示
+        row.addEventListener('dblclick', async () => {
           if (!node.scanned) { row.classList.add('loading-node'); await scanDir(node); }
           node.expanded = !node.expanded;
           renderTreeList();
           await loadDirView(node);
         });
-        // 右クリックでカラーピッカー＋タグ設定を表示
-        row.addEventListener('contextmenu', e => showFolderColorPicker(e, node));
+        // 右クリックでフォルダ操作メニューを表示
+        row.addEventListener('contextmenu', e => showFolderContextMenu(e, node));
         treeListEl.appendChild(row);
         if (node.expanded && node.children && node.children.length)
           renderTreeNodes(node.children, depth + 1);
@@ -2136,6 +2355,14 @@
           pg.textContent = node.pageCount + 'p'; row.appendChild(pg);
         }
         row.addEventListener('click', () => selectFile(node));
+
+        // 非PDFファイル：ダブルクリックでブラウザ開く
+        if (!node.name.toLowerCase().endsWith('.pdf')) {
+          row.addEventListener('dblclick', e => {
+            if (e.target === label) return; // labelのdblclickは名前変更が担当
+            openFileWithDefault(node);
+          });
+        }
 
         // ダブルクリックでインライン名前変更
         label.addEventListener('dblclick', e => {
@@ -2202,15 +2429,23 @@
       node._dividerEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    // PDFでないファイルはスキップ
+    // PDFでないファイル → 選択状態にして案内を表示
     if (!node.name.toLowerCase().endsWith('.pdf')) {
       activeNode = node; renderTreeList();
       ctFilename.textContent = node.name;
-      ctPages.textContent = '（PDF以外）';
+      const ext = node.name.split('.').pop().toUpperCase();
+      ctPages.textContent = ext ? `（${ext}ファイル）` : '（PDF以外）';
       contentToolbar.style.display = 'flex';
       contentEmpty.style.display = 'none';
       thumbGrid.style.display = 'flex';
-      thumbGrid.innerHTML = `<div style="padding:40px;color:#888;font-size:13px;">このファイルはPDF形式ではないため表示できません。</div>`;
+      thumbGrid.innerHTML = `<div style="padding:48px 40px;text-align:center;color:#888;">
+        <div style="font-size:48px;margin-bottom:14px;line-height:1;">${getFileIcon(node.name)}</div>
+        <div style="font-size:13px;font-weight:600;color:#4a3a20;margin-bottom:8px;">${node.name}</div>
+        <div style="font-size:11px;line-height:1.8;color:#999;">
+          ダブルクリック → ブラウザで開く<br>
+          右クリック → プログラムで開く
+        </div>
+      </div>`;
       return;
     }
     if (!node.pdfDoc) {
@@ -2327,13 +2562,24 @@
      annos: [{type,x,y,w,h,color,text}]  x,y,w,h は 0〜1 の比率
   ══════════════════════════════════════════════════ */
   function drawAnnotationsOnCtx(ctx, annos, W, H, small = false) {
-    for (const a of annos) {
+    for (let i = 0; i < annos.length; i++) {
+      const a = annos[i];
       if (a.type === 'highlight') {
         ctx.save();
         ctx.globalAlpha = 0.42;
         ctx.fillStyle = a.color;
         ctx.fillRect(a.x * W, a.y * H, a.w * W, a.h * H);
         ctx.restore();
+        // 選択中：点線枠（フルサイズのみ）
+        if (!small && selectedAnnos.has(i)) {
+          ctx.save();
+          ctx.strokeStyle = '#2563eb';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 3]);
+          ctx.globalAlpha = 0.9;
+          ctx.strokeRect(a.x * W, a.y * H, a.w * W, a.h * H);
+          ctx.restore();
+        }
       } else if (a.type === 'sticky') {
         // サムネイル用：付箋を色付き矩形＋テキストで描画
         const sx = a.x * W, sy = a.y * H, sw = a.w * W, sh = a.h * H;
@@ -2402,6 +2648,9 @@
     try { await modalRenderTask.promise; } catch(e) {}
     modalRenderTask = null;
 
+    // ページ変更時に選択をリセット
+    selectedAnnos.clear();
+
     // 注釈をオーバーレイに描画
     redrawAnnoOverlay();
     updateModalBtns();
@@ -2430,6 +2679,207 @@
   let activeCtxMenu = null;
   function closeCommentCtxMenu() {
     if (activeCtxMenu) { activeCtxMenu.remove(); activeCtxMenu = null; }
+  }
+
+  /* ══ 選択ヘルパー ══ */
+  // ハイライト（canvas描画）のヒットテスト
+  function getAnnoAtPos(pos) {
+    const node = modal._node;
+    if (!node) return null;
+    const annos = getAnnotations(node.name, modalPage);
+    const W = annoCanvas.width, H = annoCanvas.height;
+    const px = pos.x / W, py = pos.y / H;
+    for (let i = annos.length - 1; i >= 0; i--) {
+      const a = annos[i];
+      if (a.type === 'highlight' &&
+          px >= a.x && px <= a.x + a.w &&
+          py >= a.y && py <= a.y + a.h) {
+        return { idx: i, anno: a };
+      }
+    }
+    return null;
+  }
+
+  function clearSelection() {
+    selectedAnnos.clear();
+    redrawAnnoOverlay(); // DOM要素の.anno-selectedも再描画で更新される
+  }
+
+  function selectAnno(idx, ctrlHeld) {
+    if (!ctrlHeld) selectedAnnos.clear();
+    if (selectedAnnos.has(idx)) selectedAnnos.delete(idx);
+    else selectedAnnos.add(idx);
+    redrawAnnoOverlay();
+  }
+
+  // 選択注釈を一括削除
+  function deleteSelectedAnnos() {
+    if (!selectedAnnos.size) return;
+    const node = modal._node;
+    if (!node) return;
+    const allAnnos = getAnnotations(node.name, modalPage);
+    const newList = allAnnos.filter((_, i) => !selectedAnnos.has(i));
+    selectedAnnos.clear();
+    setAnnotations(node.name, modalPage, newList);
+    redrawAnnoOverlay();
+    refreshThumb(node, modalPage);
+  }
+
+  /* ── ハイライト右クリックメニュー ── */
+  function showHighlightCtxMenu(e, annoIdx, anno) {
+    closeCommentCtxMenu();
+    closeCommentViewPopup();
+    const node = modal._node;
+    const HL_COLORS = ['#fef08a','#86efac','#93c5fd','#f9a8d4','#fca5a5','#c4b5fd','#fdba74','#67e8f9'];
+
+    const menu = document.createElement('div');
+    menu.className = 'comment-ctx-menu';
+
+    // 削除
+    const delItem = document.createElement('div');
+    delItem.className = 'comment-ctx-item';
+    delItem.textContent = '🗑 削除';
+    delItem.onclick = () => {
+      const allAnnos = getAnnotations(node.name, modalPage);
+      allAnnos.splice(annoIdx, 1);
+      selectedAnnos.clear();
+      setAnnotations(node.name, modalPage, allAnnos);
+      redrawAnnoOverlay();
+      refreshThumb(node, modalPage);
+      closeCommentCtxMenu();
+    };
+
+    const sep = document.createElement('div');
+    sep.className = 'comment-ctx-sep';
+
+    // 色変更
+    const colorLabel = document.createElement('div');
+    colorLabel.className = 'comment-ctx-label';
+    colorLabel.textContent = '色変更:';
+
+    const colorRow = document.createElement('div');
+    colorRow.className = 'comment-ctx-colors';
+    HL_COLORS.forEach(c => {
+      const dot = document.createElement('div');
+      dot.className = 'comment-ctx-color' + (anno.color === c ? ' selected' : '');
+      dot.style.background = c;
+      dot.title = c;
+      dot.onclick = () => {
+        const allAnnos = getAnnotations(node.name, modalPage);
+        allAnnos[annoIdx].color = c;
+        setAnnotations(node.name, modalPage, allAnnos);
+        redrawAnnoOverlay();
+        refreshThumb(node, modalPage);
+        closeCommentCtxMenu();
+      };
+      colorRow.appendChild(dot);
+    });
+
+    const sep2 = document.createElement('div');
+    sep2.className = 'comment-ctx-sep';
+
+    // コメントを追加
+    const addComment = document.createElement('div');
+    addComment.className = 'comment-ctx-item';
+    addComment.textContent = '💬 コメントを追加';
+    addComment.onclick = () => {
+      closeCommentCtxMenu();
+      setAnnoTool('comment');
+      const W = annoCanvas.width, H = annoCanvas.height;
+      const cx = (anno.x + anno.w / 2) * W;
+      const cy = (anno.y + anno.h / 2) * H;
+      const rect = annoCanvas.getBoundingClientRect();
+      const scaleX = rect.width / W, scaleY = rect.height / H;
+      const fakeEv = { clientX: rect.left + cx * scaleX, clientY: rect.top + cy * scaleY };
+      showCommentPopup(fakeEv, { x: cx, y: cy });
+    };
+
+    menu.appendChild(delItem);
+    menu.appendChild(sep);
+    menu.appendChild(colorLabel);
+    menu.appendChild(colorRow);
+    menu.appendChild(sep2);
+    menu.appendChild(addComment);
+
+    document.body.appendChild(menu);
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    let mx = e.clientX, my = e.clientY;
+    if (mx + mw > window.innerWidth)  mx = window.innerWidth  - mw - 4;
+    if (my + mh > window.innerHeight) my = window.innerHeight - mh - 4;
+    menu.style.left = mx + 'px';
+    menu.style.top  = my + 'px';
+    activeCtxMenu = menu;
+    setTimeout(() => {
+      document.addEventListener('click', closeCommentCtxMenu, { once: true });
+      document.addEventListener('contextmenu', closeCommentCtxMenu, { once: true });
+    }, 0);
+  }
+
+  /* ── 付箋右クリックメニュー ── */
+  function showStickyCtxMenu(e, annoIdx, anno, node) {
+    closeCommentCtxMenu();
+    const ST_COLORS = ['#fef08a','#bbf7d0','#fbcfe8','#bae6fd','#e9d5ff','#fed7aa'];
+
+    const menu = document.createElement('div');
+    menu.className = 'comment-ctx-menu';
+
+    // 削除
+    const delItem = document.createElement('div');
+    delItem.className = 'comment-ctx-item';
+    delItem.textContent = '🗑 削除';
+    delItem.onclick = () => {
+      const allAnnos = getAnnotations(node.name, modalPage);
+      allAnnos.splice(annoIdx, 1);
+      selectedAnnos.clear();
+      setAnnotations(node.name, modalPage, allAnnos);
+      redrawAnnoOverlay();
+      refreshThumb(node, modalPage);
+      closeCommentCtxMenu();
+    };
+
+    const sep = document.createElement('div');
+    sep.className = 'comment-ctx-sep';
+
+    // 色変更
+    const colorLabel = document.createElement('div');
+    colorLabel.className = 'comment-ctx-label';
+    colorLabel.textContent = '色変更:';
+
+    const colorRow = document.createElement('div');
+    colorRow.className = 'comment-ctx-colors';
+    ST_COLORS.forEach(c => {
+      const dot = document.createElement('div');
+      dot.className = 'comment-ctx-color' + (anno.color === c ? ' selected' : '');
+      dot.style.background = c;
+      dot.title = c;
+      dot.onclick = () => {
+        const allAnnos = getAnnotations(node.name, modalPage);
+        allAnnos[annoIdx].color = c;
+        setAnnotations(node.name, modalPage, allAnnos);
+        redrawAnnoOverlay();
+        refreshThumb(node, modalPage);
+        closeCommentCtxMenu();
+      };
+      colorRow.appendChild(dot);
+    });
+
+    menu.appendChild(delItem);
+    menu.appendChild(sep);
+    menu.appendChild(colorLabel);
+    menu.appendChild(colorRow);
+
+    document.body.appendChild(menu);
+    const mw = menu.offsetWidth, mh = menu.offsetHeight;
+    let mx = e.clientX, my = e.clientY;
+    if (mx + mw > window.innerWidth)  mx = window.innerWidth  - mw - 4;
+    if (my + mh > window.innerHeight) my = window.innerHeight - mh - 4;
+    menu.style.left = mx + 'px';
+    menu.style.top  = my + 'px';
+    activeCtxMenu = menu;
+    setTimeout(() => {
+      document.addEventListener('click', closeCommentCtxMenu, { once: true });
+      document.addEventListener('contextmenu', closeCommentCtxMenu, { once: true });
+    }, 0);
   }
 
   function showCommentCtxMenu(e, annoIdx, anno) {
@@ -2592,12 +3042,31 @@
           showCommentCtxMenu(ev, i, a);
         });
 
+        // 左クリックで選択（Ctrl で複数選択）
+        pin.addEventListener('click', ev => {
+          ev.stopPropagation();
+          // 既存のポップアップ表示も維持
+          const vp = document.getElementById('comment-view-popup');
+          if (activeCommentViewPin === pin && vp.classList.contains('visible')) {
+            closeCommentViewPopup();
+          } else {
+            activeCommentViewPin = pin;
+            vp.textContent = a.text;
+            vp.style.color = a.fontColor || '#06b6d4';
+            vp.style.left = (a.x * W + 14) + 'px';
+            vp.style.top  = (a.y * H - 8) + 'px';
+            vp.classList.add('visible');
+          }
+          selectAnno(i, ev.ctrlKey);
+        });
+
+        if (selectedAnnos.has(i)) pin.classList.add('anno-selected');
         canvasWrap.appendChild(pin);
       } else {
         // ── デフォルト: インライン テキスト表示（Edgeスタイル） ──
         const el = document.createElement('div');
         el.className = 'comment-inline';
-        el.title = '右クリック: メニュー';
+        el.title = '左クリック: 選択 / 右クリック: メニュー';
 
         const marker = document.createElement('div');
         marker.className = 'comment-inline-marker';
@@ -2613,20 +3082,27 @@
         el.style.left = (a.x * W) + 'px';
         el.style.top  = (a.y * H) + 'px';
 
+        el.addEventListener('click', ev => {
+          ev.stopPropagation();
+          selectAnno(i, ev.ctrlKey);
+        });
+
         el.addEventListener('contextmenu', ev => {
           ev.preventDefault(); ev.stopPropagation();
           showCommentCtxMenu(ev, i, a);
         });
 
+        if (selectedAnnos.has(i)) el.classList.add('anno-selected');
         canvasWrap.appendChild(el);
       }
     });
   }
 
-  // キャンバス外クリックでポップアップ・メニューを閉じる
+  // キャンバス外クリックでポップアップ・メニューを閉じ、選択を解除
   canvasWrap.addEventListener('click', e => {
     if (!e.target.classList.contains('comment-pin')) closeCommentViewPopup();
     closeCommentCtxMenu();
+    clearSelection();
   });
 
   function updateModalBtns() {
@@ -2657,6 +3133,16 @@
   document.getElementById('modal-last').onclick  = () => modalGoTo(modal._node.pageCount);
   document.getElementById('modal-zoom-in').onclick  = () => { if (modalZoomIdx < modalZoomSteps.length-1) { modalZoomIdx++; renderModalPage(); } };
   document.getElementById('modal-zoom-out').onclick = () => { if (modalZoomIdx > 0) { modalZoomIdx--; renderModalPage(); } };
+
+  // スクロールホイールでズーム（上スクロール→拡大、下スクロール→縮小）
+  document.querySelector('.modal-body').addEventListener('wheel', e => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      if (modalZoomIdx < modalZoomSteps.length - 1) { modalZoomIdx++; renderModalPage(); }
+    } else {
+      if (modalZoomIdx > 0) { modalZoomIdx--; renderModalPage(); }
+    }
+  }, { passive: false });
   document.getElementById('modal-close').onclick = () => {
     modal.classList.add('hidden');
     if (modalRenderTask) { modalRenderTask.cancel(); modalRenderTask = null; }
@@ -2773,6 +3259,7 @@
     const w = Math.abs(pos.x - drawStart.x) / W;
     const h = Math.abs(pos.y - drawStart.y) / H;
     if (w > 0.005 && h > 0.005) {
+      didHighlightDraw = true;
       const node = modal._node;
       const annos = getAnnotations(node.name, modalPage);
       annos.push({ type:'highlight', x, y, w, h, color: annoColor });
@@ -2784,6 +3271,29 @@
 
   annoCanvas.addEventListener('mouseleave', () => {
     if (drawing) { drawing = false; redrawAnnoOverlay(); }
+  });
+
+  // 左クリックでハイライトを選択
+  annoCanvas.addEventListener('click', e => {
+    if (didHighlightDraw) { didHighlightDraw = false; e.stopPropagation(); return; }
+    if (annoTool === 'eraser' || annoTool === 'comment' || annoTool === 'sticky') { e.stopPropagation(); return; }
+    const pos = getCanvasPos(e);
+    const hit = getAnnoAtPos(pos);
+    if (hit) {
+      selectAnno(hit.idx, e.ctrlKey);
+    } else {
+      clearSelection();
+    }
+    e.stopPropagation();
+  });
+
+  // 右クリックでハイライトのコンテキストメニュー
+  annoCanvas.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    const pos = getCanvasPos(e);
+    const hit = getAnnoAtPos(pos);
+    if (hit) showHighlightCtxMenu(e, hit.idx, hit.anno);
+    e.stopPropagation();
   });
 
   // 消しゴム：クリック位置の注釈を削除
@@ -2943,6 +3453,21 @@
     el.appendChild(header);
     el.appendChild(textarea);
     el.appendChild(resizeHandle);
+
+    // 選択状態
+    if (selectedAnnos.has(annoIdx)) el.classList.add('anno-selected');
+
+    // 左クリックで選択
+    el.addEventListener('mousedown', ev => {
+      if (ev.button === 0) { ev.stopPropagation(); selectAnno(annoIdx, ev.ctrlKey); }
+    });
+
+    // 右クリックメニュー
+    el.addEventListener('contextmenu', ev => {
+      ev.preventDefault(); ev.stopPropagation();
+      showStickyCtxMenu(ev, annoIdx, a, node);
+    });
+
     canvasWrap.appendChild(el);
 
     // ─── ドラッグ移動 ───
@@ -3022,8 +3547,10 @@
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  modalGoTo(modalPage + 1);
       if (e.key === 'Escape') {
         if (!commentPopup.classList.contains('hidden')) document.getElementById('comment-cancel').click();
+        else if (selectedAnnos.size) clearSelection();
         else modal.classList.add('hidden');
       }
+      if (e.key === 'Delete' && selectedAnnos.size) { e.preventDefault(); e.stopPropagation(); deleteSelectedAnnos(); }
       if (e.ctrlKey && (e.key === '+' || e.key === '=')) { e.preventDefault(); document.getElementById('modal-zoom-in').click(); }
       if (e.ctrlKey && e.key === '-') { e.preventDefault(); document.getElementById('modal-zoom-out').click(); }
       if (e.key === 'h') setAnnoTool('highlight');
@@ -3363,30 +3890,71 @@
     openSearchDialog();
   });
 
-  function openSearchDialog() {
-    showDialog('検索',
-      `<input class="search-input" id="search-input" placeholder="ファイル名を検索..." autocomplete="off">
+  function openSearchDialog(scopeNode) {
+    const scopeLabel = scopeNode ? `「${scopeNode.name}」内` : '全体';
+    showDialog('🔍 検索',
+      `<div class="search-tabs">
+         <div class="search-tab active" id="stab-file">📄 ファイル</div>
+         <div class="search-tab" id="stab-folder">📁 フォルダ</div>
+       </div>
+       ${scopeNode ? `<div class="search-scope-label">🔎 検索範囲: ${scopeLabel}</div>` : ''}
+       <input class="search-input" id="search-input" placeholder="${scopeLabel}のファイルを検索..." autocomplete="off">
        <div class="search-results" id="search-results"></div>`,
       `<button class="app-dialog-btn" data-close>閉じる</button>`);
     const input = document.getElementById('search-input');
     const results = document.getElementById('search-results');
+    const tabFile = document.getElementById('stab-file');
+    const tabFolder = document.getElementById('stab-folder');
+    let searchMode = 'file';
     input.focus();
+
+    tabFile.addEventListener('click', () => {
+      searchMode = 'file';
+      tabFile.classList.add('active'); tabFolder.classList.remove('active');
+      input.placeholder = `${scopeLabel}のファイルを検索...`;
+      doSearch();
+    });
+    tabFolder.addEventListener('click', () => {
+      searchMode = 'folder';
+      tabFolder.classList.add('active'); tabFile.classList.remove('active');
+      input.placeholder = `${scopeLabel}のフォルダを検索...`;
+      doSearch();
+    });
+
     function doSearch() {
       const q = input.value.trim().toLowerCase();
       results.innerHTML = '';
       if (!q || !treeRoot) { results.innerHTML = '<div class="search-no-result">キーワードを入力してください</div>'; return; }
       const found = [];
+      const root = scopeNode || treeRoot;
       function walk(node) {
-        if (node.kind === 'file' && node.name.toLowerCase().includes(q)) found.push(node);
+        if (searchMode === 'file'   && node.kind === 'file' && node.name.toLowerCase().includes(q)) found.push(node);
+        if (searchMode === 'folder' && node.kind === 'dir'  && node.name.toLowerCase().includes(q)) found.push(node);
         if (node.children) node.children.forEach(walk);
       }
-      treeRoot.children?.forEach(walk);
+      (root.children || []).forEach(walk);
       if (!found.length) { results.innerHTML = '<div class="search-no-result">見つかりませんでした</div>'; return; }
       found.forEach(node => {
         const item = document.createElement('div');
         item.className = 'search-result-item';
-        item.innerHTML = `<span>📄</span><span>${node.name}</span>`;
-        item.addEventListener('click', () => { closeDialog(); selectFile(node); });
+        const icon = node.kind === 'dir' ? '📁' : getFileIcon(node.name);
+        item.innerHTML = `<span>${icon}</span><span>${node.name}</span>`;
+        item.addEventListener('click', () => {
+          closeDialog();
+          if (node.kind === 'dir') {
+            // フォルダをツリーで表示・選択
+            function expandToNode(parent, target) {
+              if (!parent.children) return false;
+              if (parent.children.includes(target)) { parent.expanded = true; return true; }
+              return parent.children.some(c => c.kind === 'dir' && expandToNode(c, target));
+            }
+            expandToNode(treeRoot, node);
+            selectedDirNode = node;
+            renderTreeList();
+          } else {
+            selectFile(node);
+          }
+        });
         results.appendChild(item);
       });
     }
@@ -3396,12 +3964,17 @@
 
   // ── 表示メニュー ──
 
-  // ファイルタイプフィルター
-  let showAllFiles = false;
+  // ファイルタイプフィルター（前回の選択をlocalStorageで復元）
+  let showAllFiles = localStorage.getItem('pdfViewer_showAllFiles') === 'true';
+  if (showAllFiles) {
+    document.getElementById('mi-all-files').classList.add('checked');
+    document.getElementById('mi-pdf-only').classList.remove('checked');
+  }
   document.getElementById('mi-pdf-only').addEventListener('click', () => {
     closeAllMenus();
     if (!showAllFiles) return; // already pdf-only
     showAllFiles = false;
+    localStorage.setItem('pdfViewer_showAllFiles', 'false');
     document.getElementById('mi-pdf-only').classList.add('checked');
     document.getElementById('mi-all-files').classList.remove('checked');
     // 再スキャンが必要 (scannedフラグをリセット)
@@ -3412,6 +3985,7 @@
     closeAllMenus();
     if (showAllFiles) return; // already all
     showAllFiles = true;
+    localStorage.setItem('pdfViewer_showAllFiles', 'true');
     document.getElementById('mi-all-files').classList.add('checked');
     document.getElementById('mi-pdf-only').classList.remove('checked');
     function resetScanned(node) { node.scanned = false; node.children = null; }
@@ -3564,7 +4138,7 @@
     if (e.ctrlKey && e.key === 'z') { e.preventDefault(); document.getElementById('mi-undo').click(); }
     if (e.ctrlKey && e.key === 'y') { e.preventDefault(); document.getElementById('mi-redo').click(); }
     if (e.ctrlKey && e.key === 'p' && modal.classList.contains('hidden')) { e.preventDefault(); document.getElementById('mi-print-menu').click(); }
-    if (e.key === 'Delete' && activeNode) { e.preventDefault(); document.getElementById('mi-delete').click(); }
+    if (e.key === 'Delete' && activeNode && modal.classList.contains('hidden')) { e.preventDefault(); document.getElementById('mi-delete').click(); }
   });
 
 // ── Python bridge（将来 pywebview 接入时由此替换）─────────────

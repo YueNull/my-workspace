@@ -29,3 +29,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    以防之后用其他语言实现App化时，忘记需要实现的模块
 
 2：当功能和工具有所调整后，记得在feature-summary.html里面进行汇总调整
+
+3：如果我提到的功能，工具或其他，代码中原本就已经实现了的话，就在最后进行说明，并提问是否还需要进行修改

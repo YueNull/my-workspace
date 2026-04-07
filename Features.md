@@ -111,6 +111,8 @@ win32ui.CreatePrintDialog().DoModal()  # OS標準ダイアログ
 | ファイルソート | 名前順 (A→Z/Z→A)・更新日時順・ファイルサイズ順 | `sortTreeChildren` |
 | ファイル種別アイコン | 拡張子に応じた絵文字アイコン表示（PDF/Excel/Word/画像/動画 など） | `getFileIcon` |
 | ファイルプロパティ | 右クリック → 名前・種類・サイズ・更新日時・ページ数を表示 | `showFileProperties` |
+| 非PDFファイルを開く | ダブルクリックでブラウザ新タブに開く（blob URL経由）。右クリック「プログラムで開く」でも同様 | `openFileWithDefault` |
+| ファイル種別アイコン拡充 | 弥生会計(.kaikei/.kdk/.mfm)・弥生給与(.kyuyo)・DB系(.dat/.db)等を追加 | `getFileIcon` |
 
 ### 3. 左サイドバー（ファイルツリー）
 
@@ -240,7 +242,7 @@ win32ui.CreatePrintDialog().DoModal()  # OS標準ダイアログ
 | 束ねる | ❌ アプリ版 | PDF結合はブラウザAPIなし |
 | ばらす | ❌ アプリ版 | PDF分割はブラウザAPIなし |
 | すべてを選択 | ✅ HTML | サムネイルカードを全選択（視覚ハイライト） |
-| 検索 | ✅ HTML | ツリー内のファイル名で絞り込み検索 |
+| 検索 | ✅ HTML | ツリー内のファイル名・フォルダ名で絞り込み検索（タブ切替）、フォルダ右クリックからスコープ指定検索も可 |
 
 ### 表示メニュー
 
@@ -289,6 +291,23 @@ win32ui.CreatePrintDialog().DoModal()  # OS標準ダイアログ
 ---
 
 ## 未実装機能（HTML 不可 → Python 実装が必要）
+
+### J. ネイティブアプリで開く（OS標準プログラムの選択・起動）
+
+ブラウザ版の「プログラムで開く」は blob URL を新タブで開くため、ブラウザが対応しない形式（Excel, Word, 弥生会計 等）はダウンロード扱いになる。OS のデフォルトアプリで直接起動する機能はブラウザ API に存在しない。
+
+**Python 実装方針：**
+```python
+import subprocess, os
+
+# OS標準のデフォルトアプリで開く
+os.startfile(file_path)  # Windows専用
+
+# プログラムを選択して開く（「プログラムで開く」ダイアログ）
+subprocess.run(['rundll32', 'shell32.dll,OpenAs_RunDLL', file_path])
+```
+
+
 
 ### A. Brother HL-J7010CDW プリンター連携
 
